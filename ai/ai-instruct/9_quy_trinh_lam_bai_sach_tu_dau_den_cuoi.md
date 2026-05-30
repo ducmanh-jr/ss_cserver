@@ -1,33 +1,37 @@
-# Quy trinh lam bai sach tu dau den cuoi
+# 🏆 Quy trình làm bài sạch từ đầu đến cuối
 
-## 1. Nguyen tac lam bai
+## 1. 📋 Nguyên tắc làm bài
 
-Lam theo thu tu sau de tranh loi:
+> [!IMPORTANT]
+> Làm theo thứ tự sau để tránh lỗi:
 
-1. Tao project.
-2. Cai package.
-3. Tao folder.
-4. Viet entity.
-5. Viet DbContext.
-6. Cau hinh `appsettings.json`.
-7. Cau hinh `Program.cs`.
-8. Viet DTO.
-9. Viet exception/constants/utils.
-10. Viet service interface.
-11. Viet service implement.
-12. Viet controller.
+1. Tạo project.
+2. Cài package.
+3. Tạo folder.
+4. Viết entity.
+5. Viết DbContext.
+6. Cấu hình `appsettings.json`.
+7. Cấu hình `Program.cs`.
+8. Viết DTO.
+9. Viết exception/constants/utils.
+10. Viết service interface.
+11. Viết service implement.
+12. Viết controller.
 13. Build.
 14. Migration.
 15. Update database.
 16. Test API.
 
-Dung build nhieu lan, moi lan sau khi xong mot cum file quan trong.
+> [!TIP]
+> Dùng build nhiều lần, mỗi lần sau khi xong một cụm file quan trọng.
 
-## 2. Thu tu tao file
+---
 
-### Buoc 1: Entity
+## 2. 🗂️ Thứ tự tạo file
 
-Tao:
+### 🟢 Bước 1: Entity
+
+Tạo:
 
 ```text
 Entities/Enterprise1234De1.cs
@@ -35,32 +39,30 @@ Entities/Product1234De1.cs
 Entities/EnterpriseProduct1234De1.cs
 ```
 
-Muc tieu:
+**Mục tiêu:**
+- Có đủ 3 bảng.
+- Quan hệ nhiều-nhiều có bảng trung gian.
+- `Quantity` nằm đúng trong bảng trung gian.
 
-- Co du 3 bang.
-- Quan he nhieu-nhieu co bang trung gian.
-- `Quantity` nam dung trong bang trung gian.
+### 🟡 Bước 2: DbContext
 
-### Buoc 2: DbContext
-
-Tao:
+Tạo:
 
 ```text
 DbContexts/AppDbContext1234De1.cs
 ```
 
-Muc tieu:
-
-- Khai bao `DbSet`.
-- Cau hinh table.
-- Cau hinh key.
-- Cau hinh foreign key.
-- Cau hinh unique index.
+**Mục tiêu:**
+- Khai báo `DbSet`.
+- Cấu hình table.
+- Cấu hình key.
+- Cấu hình foreign key.
+- Cấu hình unique index.
 - Seed data.
 
-### Buoc 3: DTO
+### 🟠 Bước 3: DTO
 
-Tao:
+Tạo:
 
 ```text
 Dtos/Enterprises/CreateEnterpriseDto1234De1.cs
@@ -73,15 +75,14 @@ Dtos/EnterpriseProducts/EnterpriseProductDto1234De1.cs
 Dtos/Common/PagedResultDto1234De1.cs
 ```
 
-Muc tieu:
+**Mục tiêu:**
+- Input có validate.
+- String input được trim.
+- Response không trả entity trực tiếp.
 
-- Input co validate.
-- String input duoc trim.
-- Response khong tra entity truc tiep.
+### 🔴 Bước 4: Exception, constants, utils
 
-### Buoc 4: Exception, constants, utils
-
-Tao:
+Tạo:
 
 ```text
 Exceptions/UserFriendlyException.cs
@@ -90,54 +91,51 @@ Constants/SuccessMessages1234De1.cs
 Utils/StringUtils1234De1.cs
 ```
 
-Muc tieu:
+**Mục tiêu:**
+- Lỗi nghiệp vụ rõ ràng.
+- Message không viết lặp lại.
+- Có file utils nhỏ nếu cần.
 
-- Loi nghiep vu ro rang.
-- Message khong viet lap lai.
-- Co file utils nho neu can.
+### 🟣 Bước 5: Service
 
-### Buoc 5: Service
-
-Tao:
+Tạo:
 
 ```text
 Services/Interfaces/IEnterpriseService1234De1.cs
 Services/Implements/EnterpriseService1234De1.cs
 ```
 
-Muc tieu:
+**Mục tiêu:**
+- Controller không viết logic database.
+- Service check trùng tên/mã số thuế.
+- Service phân trang/tìm kiếm.
+- Service lấy top products.
 
-- Controller khong viet logic database.
-- Service check trung ten/ma so thue.
-- Service phan trang/tim kiem.
-- Service lay top products.
+### 🔵 Bước 6: Controller
 
-### Buoc 6: Controller
-
-Tao:
+Tạo:
 
 ```text
 Controllers/EnterprisesController1234De1.cs
 ```
 
-Muc tieu:
+**Mục tiêu:**
+- API dùng HTTP method.
+- Trả `IActionResult`.
+- Route rõ ràng.
+- Bắt `UserFriendlyException`.
 
-- API dung HTTP method.
-- Tra `IActionResult`.
-- Route ro rang.
-- Bat `UserFriendlyException`.
+---
 
-## 3. Thu tu chay lenh
+## 3. 💻 Thứ tự chạy lệnh
 
-Tao project:
-
+Tạo project:
 ```powershell
 dotnet new webapi -n NguyenVanA1234
 cd NguyenVanA1234
 ```
 
-Cai package:
-
+Cài package:
 ```powershell
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer
 dotnet add package Microsoft.EntityFrameworkCore.Design
@@ -145,102 +143,105 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools
 ```
 
 Build:
-
 ```powershell
 dotnet build
 ```
 
 Migration:
-
 ```powershell
 dotnet ef migrations add InitialCreate
 ```
 
 Update database:
-
 ```powershell
 dotnet ef database update
 ```
 
-Chay project:
-
+Chạy project:
 ```powershell
 dotnet run
 ```
 
-## 4. Thu tu test API
+---
 
-Test theo thu tu nay:
+## 4. 🧪 Thứ tự test API
+
+Test theo thứ tự này:
 
 1. `GET /api/enterprises?PageSize=10&PageIndex=1`
 2. `GET /api/enterprises?PageSize=10&PageIndex=1&Keyword=ABC`
 3. `POST /api/enterprises`
-4. `POST /api/enterprises` voi ten trung.
-5. `POST /api/enterprises` voi ma so thue trung.
+4. `POST /api/enterprises` với tên trùng.
+5. `POST /api/enterprises` với mã số thuế trùng.
 6. `PUT /api/enterprises/{id}`
-7. `PUT /api/enterprises/{id}` voi ten cua doanh nghiep khac.
+7. `PUT /api/enterprises/{id}` với tên của doanh nghiệp khác.
 8. `GET /api/enterprises/{enterpriseId}/top-products`
 9. `DELETE /api/enterprises/{id}`
-10. `DELETE /api/enterprises/{id}` voi id khong ton tai.
+10. `DELETE /api/enterprises/{id}` với id không tồn tại.
 
-## 5. Checklist truoc khi nop bai
+---
 
-Mo migration va kiem tra:
+## 5. ✅ Checklist trước khi nộp bài
 
-- Co `CreateTable("Enterprises")`.
-- Co `CreateTable("Products")`.
-- Co `CreateTable("EnterpriseProducts")`.
-- `EnterpriseProducts` co `Quantity`.
-- Co `ForeignKey` den `Enterprises`.
-- Co `ForeignKey` den `Products`.
-- Co unique index cho `Name`, `TaxCode`, `Code`.
+Mở migration và kiểm tra:
+- Có `CreateTable("Enterprises")`.
+- Có `CreateTable("Products")`.
+- Có `CreateTable("EnterpriseProducts")`.
+- `EnterpriseProducts` có `Quantity`.
+- Có `ForeignKey` đến `Enterprises`.
+- Có `ForeignKey` đến `Products`.
+- Có unique index cho `Name`, `TaxCode`, `Code`.
 
-Mo code va kiem tra:
-
-- Class dat dung `1234De1` theo MSSV/de.
+Mở code và kiểm tra:
+- Class đặt đúng `1234De1` theo MSSV/đề.
 - Public property PascalCase.
 - Local variable camelCase.
 - Private field `_camelCase`.
-- DTO co `[Required]`, `[StringLength]`, `[Range]`.
-- DTO string co setter trim.
-- Controller tra `Task<IActionResult>`.
-- Service khong tra `IActionResult`.
-- Controller khong dung `_dbContext`.
-- Service co `_dbContext`.
-- `Program.cs` dang ky DbContext va service.
+- DTO có `[Required]`, `[StringLength]`, `[Range]`.
+- DTO string có setter trim.
+- Controller trả `Task<IActionResult>`.
+- Service không trả `IActionResult`.
+- Controller không dùng `_dbContext`.
+- Service có `_dbContext`.
+- `Program.cs` đăng ký DbContext và service.
 
-Test API va chup/ghi lai ket qua:
+Test API và chụp/ghi lại kết quả:
+- Thêm doanh nghiệp thành công.
+- Thêm doanh nghiệp trùng tên bị lỗi.
+- Thêm doanh nghiệp trùng mã số thuế bị lỗi.
+- Sửa doanh nghiệp thành công.
+- Xóa doanh nghiệp thành công.
+- Phân trang thành công.
+- Tìm kiếm keyword thành công.
+- Top products trả đúng sản phẩm có quantity lớn nhất.
 
-- Them doanh nghiep thanh cong.
-- Them doanh nghiep trung ten bi loi.
-- Them doanh nghiep trung ma so thue bi loi.
-- Sua doanh nghiep thanh cong.
-- Xoa doanh nghiep thanh cong.
-- Phan trang thanh cong.
-- Tim kiem keyword thanh cong.
-- Top products tra dung san pham co quantity lon nhat.
+---
 
-## 6. Neu bi het thoi gian
+## 6. ⏳ Nếu bị hết thời gian
 
-Uu tien theo thu tu:
+> [!WARNING]
+> Ưu tiên theo thứ tự:
 
-1. Entity + DbContext + migration dung.
-2. API them/sua/xoa doanh nghiep.
-3. Check trung ten/ma so thue.
-4. Phan trang + keyword.
+1. Entity + DbContext + migration đúng.
+2. API thêm/sửa/xóa doanh nghiệp.
+3. Check trùng tên/mã số thuế.
+4. Phân trang + keyword.
 5. Top products.
 6. Seed data.
-7. Constants/utils lam dep code.
+7. Constants/utils làm đẹp code.
 
-Khong nen danh qua nhieu thoi gian cho UI, auth, repository pattern, AutoMapper, middleware phuc tap, vi de khong yeu cau.
+> [!NOTE]
+> Không nên dành quá nhiều thời gian cho UI, auth, repository pattern, AutoMapper, middleware phức tạp, vì đề không yêu cầu.
 
-## 7. Cau tra loi ngan khi giao vien hoi quy trinh
+---
 
-Em tach project thanh cac tang don gian:
+## 7. 🎓 Câu trả lời ngắn khi giáo viên hỏi quy trình
 
-- Entity va DbContext de mo ta database.
-- DTO de validate input va tra output gon.
-- Service de xu ly nghiep vu.
-- Controller de expose API va tra `IActionResult`.
+Em tách project thành các tầng đơn giản:
 
-Quan he doanh nghiep - san pham la nhieu-nhieu co du lieu phu `Quantity`, nen em tao entity trung gian `EnterpriseProduct`. Em dung EF Core Code First de tao migration va update SQL Server. Cac loi nghiep vu nhu trung ten, trung ma so thue, khong tim thay doanh nghiep duoc nem bang `UserFriendlyException`.
+- **Entity và DbContext** để mô tả database.
+- **DTO** để validate input và trả output gọn.
+- **Service** để xử lý nghiệp vụ.
+- **Controller** để expose API và trả `IActionResult`.
+
+Quan hệ doanh nghiệp - sản phẩm là nhiều-nhiều có dữ liệu phụ `Quantity`, nên em tạo entity trung gian `EnterpriseProduct`. Em dùng EF Core Code First để tạo migration và update SQL Server. Các lỗi nghiệp vụ như trùng tên, trùng mã số thuế, không tìm thấy doanh nghiệp được ném bằng `UserFriendlyException`.

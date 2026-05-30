@@ -1,41 +1,30 @@
-# Viet services interfaces va implements
+# ⚙️ Viết services interfaces và implements
 
-## 1. Vai tro cua service
+> [!IMPORTANT]
+> **Service Layer** là "trái tim" của ứng dụng, nơi chứa toàn bộ logic nghiệp vụ (business logic).
 
-Service la noi chua logic nghiep vu.
+## 1. 🎯 Vai trò của Service
 
-Service can lam:
+**✅ Service CẦN làm:**
+- Thêm/Sửa/Xóa doanh nghiệp.
+- Check trùng tên doanh nghiệp, mã số thuế.
+- Lấy danh sách có phân trang và filter (keyword).
+- Xử lý logic tính toán (VD: Lấy danh sách sản phẩm nhập nhiều nhất).
 
-- Them doanh nghiep.
-- Sua doanh nghiep.
-- Xoa doanh nghiep.
-- Check trung ten doanh nghiep.
-- Check trung ma so thue.
-- Lay danh sach co phan trang va keyword.
-- Lay danh sach san pham nhap nhieu nhat cua mot doanh nghiep.
+**❌ Service KHÔNG NÊN làm:**
+- Nhận HTTP request hoặc trả `IActionResult` (việc của Controller).
+- Chứa route API.
 
-Service khong nen lam:
+---
 
-- Nhan HTTP request truc tiep.
-- Tra `IActionResult`.
-- Chua route API.
+## 2. 📄 Tạo Interface Service
 
-## 2. Tao interface service
+**Đường dẫn:** `Services/Interfaces/IEnterpriseService1234De1.cs`
 
-Duong dan:
+> [!TIP]
+> Việc tạo Interface giúp tuân thủ nguyên lý Dependency Inversion (DI), giúp Controller không bị phụ thuộc cứng vào Class cụ thể.
 
-```text
-Services/Interfaces/IEnterpriseService1234De1.cs
-```
-
-File nay dung de khai bao cac ham ma controller can goi.
-
-Vi sao can file nay:
-
-- Dung Dependency Injection.
-- Controller phu thuoc vao abstraction thay vi class cu the.
-
-Code:
+**Code:**
 
 ```csharp
 using NguyenVanA1234.Dtos.Common;
@@ -47,39 +36,24 @@ namespace NguyenVanA1234.Services.Interfaces;
 public interface IEnterpriseService1234De1
 {
     Task<EnterpriseDto1234De1> CreateAsync(CreateEnterpriseDto1234De1 input);
-
     Task<EnterpriseDto1234De1> UpdateAsync(int id, UpdateEnterpriseDto1234De1 input);
-
     Task DeleteAsync(int id);
-
     Task<PagedResultDto1234De1<EnterpriseDto1234De1>> GetListAsync(FilterEnterpriseDto1234De1 input);
-
     Task<List<TopProductDto1234De1>> GetTopProductsAsync(int enterpriseId);
 }
 ```
 
-## 3. Tao implement service
+---
 
-Duong dan:
+## 3. 🛠️ Tạo Implement Service
 
-```text
-Services/Implements/EnterpriseService1234De1.cs
-```
+**Đường dẫn:** `Services/Implements/EnterpriseService1234De1.cs`
 
-File nay dung de viet logic that.
+> [!NOTE]
+> - Nên gọi Database thông qua `AppDbContext`.
+> - Gom nhóm các logic check trùng vào một private method để tái sử dụng.
 
-Vi sao can file nay:
-
-- Tach controller khoi logic database.
-- Tap trung validate nghiep vu vao mot noi.
-
-File nay khong nen chua:
-
-- Route API.
-- `IActionResult`.
-- Swagger attribute.
-
-Code:
+**Code:**
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -103,6 +77,7 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
         _dbContext = dbContext;
     }
 
+    // --- 1. THÊM DOANH NGHIỆP ---
     public async Task<EnterpriseDto1234De1> CreateAsync(CreateEnterpriseDto1234De1 input)
     {
         await ValidateEnterpriseUniqueAsync(input.Name, input.TaxCode);
@@ -120,14 +95,14 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
         return MapToEnterpriseDto(enterprise);
     }
 
+    // --- 2. SỬA DOANH NGHIỆP ---
     public async Task<EnterpriseDto1234De1> UpdateAsync(int id, UpdateEnterpriseDto1234De1 input)
     {
         var enterprise = await _dbContext.Enterprises.FirstOrDefaultAsync(e => e.Id == id);
         if (enterprise == null)
-        {
             throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseNotFound);
-        }
 
+        // Chú ý truyền id vào để bỏ qua bản ghi hiện tại khi check trùng!
         await ValidateEnterpriseUniqueAsync(input.Name, input.TaxCode, id);
 
         enterprise.Name = input.Name;
@@ -139,32 +114,26 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
         return MapToEnterpriseDto(enterprise);
     }
 
+    // --- 3. XÓA DOANH NGHIỆP ---
     public async Task DeleteAsync(int id)
     {
         var enterprise = await _dbContext.Enterprises.FirstOrDefaultAsync(e => e.Id == id);
         if (enterprise == null)
-        {
             throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseNotFound);
-        }
 
         _dbContext.Enterprises.Remove(enterprise);
         await _dbContext.SaveChangesAsync();
     }
 
+    // --- 4. DANH SÁCH & PHÂN TRANG ---
     public async Task<PagedResultDto1234De1<EnterpriseDto1234De1>> GetListAsync(FilterEnterpriseDto1234De1 input)
     {
-        if (input.PageSize <= 0)
-        {
-            throw new UserFriendlyException(ErrorMessages1234De1.PageSizeInvalid);
-        }
-
-        if (input.PageIndex <= 0)
-        {
-            throw new UserFriendlyException(ErrorMessages1234De1.PageIndexInvalid);
-        }
+        if (input.PageSize <= 0) throw new UserFriendlyException(ErrorMessages1234De1.PageSizeInvalid);
+        if (input.PageIndex <= 0) throw new UserFriendlyException(ErrorMessages1234De1.PageIndexInvalid);
 
         var query = _dbContext.Enterprises.AsNoTracking();
 
+        // Lọc Keyword
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
             var keyword = input.Keyword.Trim();
@@ -175,7 +144,7 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
 
         var items = await query
             .OrderBy(e => e.Id)
-            .Skip((input.PageIndex - 1) * input.PageSize)
+            .Skip((input.PageIndex - 1) * input.PageSize) // Công thức phân trang chuẩn
             .Take(input.PageSize)
             .Select(e => new EnterpriseDto1234De1
             {
@@ -195,23 +164,22 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
         };
     }
 
+    // --- 5. LOGIC PHỨC TẠP: TOP PRODUCTS ---
     public async Task<List<TopProductDto1234De1>> GetTopProductsAsync(int enterpriseId)
     {
         var enterpriseExists = await _dbContext.Enterprises.AnyAsync(e => e.Id == enterpriseId);
         if (!enterpriseExists)
-        {
             throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseNotFound);
-        }
 
+        // 5.1 Tìm Max Quantity của doanh nghiệp này
         var maxQuantity = await _dbContext.EnterpriseProducts
             .Where(ep => ep.EnterpriseId == enterpriseId)
             .MaxAsync(ep => (int?)ep.Quantity);
 
         if (maxQuantity == null)
-        {
             return new List<TopProductDto1234De1>();
-        }
 
+        // 5.2 Lọc ra các sản phẩm có số lượng bằng Max
         return await _dbContext.EnterpriseProducts
             .AsNoTracking()
             .Where(ep => ep.EnterpriseId == enterpriseId && ep.Quantity == maxQuantity)
@@ -223,23 +191,18 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
             .ToListAsync();
     }
 
+    // --- CÁC HÀM TIỆN ÍCH PRIVATE ---
     private async Task ValidateEnterpriseUniqueAsync(string name, string taxCode, int? currentId = null)
     {
         var nameExists = await _dbContext.Enterprises.AnyAsync(e =>
             e.Name == name && (!currentId.HasValue || e.Id != currentId.Value));
 
-        if (nameExists)
-        {
-            throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseNameExists);
-        }
+        if (nameExists) throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseNameExists);
 
         var taxCodeExists = await _dbContext.Enterprises.AnyAsync(e =>
             e.TaxCode == taxCode && (!currentId.HasValue || e.Id != currentId.Value));
 
-        if (taxCodeExists)
-        {
-            throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseTaxCodeExists);
-        }
+        if (taxCodeExists) throw new UserFriendlyException(ErrorMessages1234De1.EnterpriseTaxCodeExists);
     }
 
     private static EnterpriseDto1234De1 MapToEnterpriseDto(Enterprise1234De1 enterprise)
@@ -255,77 +218,24 @@ public class EnterpriseService1234De1 : IEnterpriseService1234De1
 }
 ```
 
-## 4. Giai thich logic them doanh nghiep
+---
 
-Truoc khi them:
+## 4. 🧠 Giải thích Logic
 
-- Check trung ten.
-- Check trung ma so thue.
+### Thêm & Sửa doanh nghiệp
+> [!WARNING]
+> Dòng cực kỳ quan trọng khi sửa: `e.Id != currentId.Value`
+> - Nếu không bỏ qua `Id` hiện tại, khi user sửa thông tin khác nhưng giữ nguyên tên/mã số thuế, hệ thống sẽ báo lỗi trùng lặp (trùng với chính nó!).
 
-Sau do:
-
-- Tao entity.
-- Add vao DbContext.
-- `SaveChangesAsync`.
-- Map sang DTO de tra ve.
-
-Khong nen:
-
-- Cho phep client gui `Id`.
-- Bo qua check trung va chi dua vao loi database.
-
-## 5. Giai thich logic sua doanh nghiep
-
-Khi sua:
-
-- Tim doanh nghiep theo `id`.
-- Neu khong co thi nem `UserFriendlyException`.
-- Check trung ten/ma so thue, nhung bo qua chinh ban ghi dang sua.
-- Cap nhat field.
-- Save.
-
-Dong quan trong:
-
-```csharp
-e.Name == name && e.Id != currentId.Value
-```
-
-Neu khong bo qua id hien tai, khi sua ma giu nguyen ten cu se bi bao trung sai.
-
-## 6. Giai thich phan trang va keyword
-
-Phan trang dung:
-
+### Phân trang
+Công thức tính toán dòng cần bỏ qua `Skip`:
 ```csharp
 Skip((PageIndex - 1) * PageSize).Take(PageSize)
 ```
+- `PageIndex = 1`: Bỏ qua 0 dòng (Lấy trang đầu).
+- `PageIndex = 2`: Bỏ qua `PageSize` dòng.
 
-`PageIndex` bat dau tu 1 vi de nguoi dung de hieu:
-
-- Trang 1: bo qua 0 dong.
-- Trang 2: bo qua `PageSize` dong.
-
-Keyword dung:
-
-```csharp
-Name.Contains(keyword) || TaxCode.Contains(keyword)
-```
-
-Day la loc gan dung theo de bai.
-
-## 7. Giai thich san pham nhap nhieu nhat
-
-Can lay san pham co `Quantity` lon nhat cua mot doanh nghiep.
-
-Neu co nhieu san pham cung so luong lon nhat, tra tat ca:
-
-```text
-Doanh nghiep 1:
-- SP001: 50
-- SP002: 50
-- SP003: 20
-
-Ket qua: SP001 va SP002
-```
-
-Dau ra chi gom `Name`, `Code` theo dung de.
+### Sản phẩm nhập nhiều nhất
+> [!TIP]
+> - Đầu tiên tìm ra số `Quantity` lớn nhất (Max).
+> - Sau đó lấy TẤT CẢ sản phẩm có số lượng bằng Max (vì có thể có 2 sản phẩm cùng đạt số lượng lớn nhất!).

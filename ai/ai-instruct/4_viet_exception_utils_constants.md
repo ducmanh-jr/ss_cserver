@@ -1,28 +1,20 @@
-# Viet exception, utils va constants
+# ⚠️ Viết exception, utils và constants
 
-## 1. Tao `UserFriendlyException`
+> [!IMPORTANT]
+> Việc tạo các class quản lý lỗi và chuỗi (constants) giúp code của bạn "sạch", dễ bảo trì và thể hiện sự chuyên nghiệp khi chấm điểm.
 
-Duong dan:
+## 1. 🚨 Tạo `UserFriendlyException`
 
-```text
-Exceptions/UserFriendlyException.cs
-```
+**Đường dẫn:** `Exceptions/UserFriendlyException.cs`
 
-File nay dung de nem loi nghiep vu ma nguoi dung hieu duoc.
+File này dùng để ném lỗi nghiệp vụ mà người dùng (client) có thể hiểu được.
 
-Vi sao can file nay:
+> [!TIP]
+> **Vì sao cần file này?**
+> - Không nên trả lỗi hệ thống thô (như stack trace) cho client.
+> - Service có thể ném lỗi rõ ràng: trùng tên, không tìm thấy doanh nghiệp,...
 
-- De bai yeu cau xu ly ngoai le bang `UserFriendlyException`.
-- Khong nen tra loi he thong thô như stack trace cho client.
-- Service co the nem loi ro rang: trung ten, khong tim thay doanh nghiep, page sai.
-
-File nay khong nen chua:
-
-- `DbContext`.
-- Logic truy van database.
-- Message constants dai.
-
-Code:
+**Code:**
 
 ```csharp
 namespace NguyenVanA1234.Exceptions;
@@ -35,86 +27,57 @@ public class UserFriendlyException : Exception
 }
 ```
 
-## 2. Tao constants message
+---
 
-Duong dan:
+## 2. 🔤 Tạo Constants Message
 
-```text
-Constants/ErrorMessages1234De1.cs
-```
+**Đường dẫn:** `Constants/ErrorMessages1234De1.cs`
 
-File nay dung de gom cac message loi dung lai nhieu lan.
+Gom các thông báo lỗi dùng lại nhiều lần vào một chỗ. Tránh hard-code chuỗi!
 
-Vi sao can file nay:
+> [!NOTE]
+> Khi cần sửa đổi thông báo lỗi, bạn chỉ cần sửa ở 1 nơi duy nhất.
 
-- Tranh viet lap string loi o nhieu noi.
-- Khi can sua message chi sua mot cho.
-
-File nay khong nen chua:
-
-- Logic `if`.
-- Query LINQ.
-- Cau hinh EF Core.
-
-Code:
+**Code:**
 
 ```csharp
 namespace NguyenVanA1234.Constants;
 
 public static class ErrorMessages1234De1
 {
-    public const string EnterpriseNotFound = "Khong tim thay doanh nghiep";
-    public const string EnterpriseNameExists = "Ten doanh nghiep da ton tai";
-    public const string EnterpriseTaxCodeExists = "Ma so thue da ton tai";
-    public const string PageSizeInvalid = "PageSize phai lon hon 0";
-    public const string PageIndexInvalid = "PageIndex phai lon hon 0";
+    public const string EnterpriseNotFound = "Không tìm thấy doanh nghiệp";
+    public const string EnterpriseNameExists = "Tên doanh nghiệp đã tồn tại";
+    public const string EnterpriseTaxCodeExists = "Mã số thuế đã tồn tại";
+    public const string PageSizeInvalid = "PageSize phải lớn hơn 0";
+    public const string PageIndexInvalid = "PageIndex phải lớn hơn 0";
 }
 ```
 
-## 3. Tao success messages neu muon
+### Tạo Success Messages (Khuyến nghị)
+**Đường dẫn:** `Constants/SuccessMessages1234De1.cs`
 
-Duong dan:
-
-```text
-Constants/SuccessMessages1234De1.cs
-```
-
-File nay dung de gom message thanh cong.
-
-Code:
+**Code:**
 
 ```csharp
 namespace NguyenVanA1234.Constants;
 
 public static class SuccessMessages1234De1
 {
-    public const string CreateEnterpriseSuccess = "Them doanh nghiep thanh cong";
-    public const string UpdateEnterpriseSuccess = "Sua doanh nghiep thanh cong";
-    public const string DeleteEnterpriseSuccess = "Xoa doanh nghiep thanh cong";
+    public const string CreateEnterpriseSuccess = "Thêm doanh nghiệp thành công";
+    public const string UpdateEnterpriseSuccess = "Sửa doanh nghiệp thành công";
+    public const string DeleteEnterpriseSuccess = "Xóa doanh nghiệp thành công";
 }
 ```
 
-## 4. Tao util normalize string
+---
 
-Duong dan:
+## 3. 🛠️ Tạo util normalize string
 
-```text
-Utils/StringUtils1234De1.cs
-```
+**Đường dẫn:** `Utils/StringUtils1234De1.cs`
 
-File nay dung de chua ham xu ly string nho, dung chung.
+Chứa các hàm xử lý string dùng chung. Giữ file thật nhỏ gọn.
 
-Vi sao can file nay:
-
-- Khi so sanh keyword, ten, ma so thue, nen trim va xu ly null gon gang.
-- Neu de khong can nhieu util, giu file that nho.
-
-File nay khong nen chua:
-
-- Logic database.
-- Logic them/sua/xoa doanh nghiep.
-
-Code:
+**Code:**
 
 ```csharp
 namespace NguyenVanA1234.Utils;
@@ -128,12 +91,14 @@ public static class StringUtils1234De1
 }
 ```
 
-## 5. Co nen tao middleware xu ly exception khong?
+---
 
-De thi yeu cau controller tra `IActionResult` va xu ly bang `UserFriendlyException`. Cach don gian, it rui ro trong phong thi:
+## 4. ❓ Có nên tạo Middleware xử lý exception không?
 
-- Service nem `UserFriendlyException`.
-- Controller bat `UserFriendlyException` va tra `BadRequest`.
-- Loi khong mong muon tra `StatusCode(500)`.
+> [!WARNING]
+> **KHÔNG NÊN** thêm middleware phức tạp nếu đề không yêu cầu! Nó dễ gây lỗi và tốn thời gian trong phòng thi.
 
-Khong nen them middleware phuc tap neu de khong yeu cau, vi de tang rui ro sai va ton thoi gian.
+**Cách làm chuẩn cho bài thi:**
+1. Service ném `UserFriendlyException`.
+2. Controller `catch (UserFriendlyException ex)` và trả về `BadRequest(new { message = ex.Message })`.
+3. Lỗi không mong muốn sẽ tự động bị ASP.NET Core catch và trả `500 Server Error`.

@@ -1,65 +1,65 @@
-# Migration, update database, seed data va test API
+# 🚀 Migration, update database, seed data và test API
 
-## 1. Kiem tra truoc khi migration
+## 1. 🔍 Kiểm tra trước khi migration
 
-Truoc khi chay migration, can dam bao:
+Trước khi chạy migration, cần đảm bảo:
 
-- Da cai `Microsoft.EntityFrameworkCore.SqlServer`.
-- Da cai `Microsoft.EntityFrameworkCore.Design`.
-- Da co `AppDbContext1234De1`.
-- Da cau hinh connection string trong `appsettings.json`.
-- Da dang ky DbContext trong `Program.cs`.
-- Project build duoc.
+- Đã cài `Microsoft.EntityFrameworkCore.SqlServer`.
+- Đã cài `Microsoft.EntityFrameworkCore.Design`.
+- Đã có `AppDbContext1234De1`.
+- Đã cấu hình connection string trong `appsettings.json`.
+- Đã đăng ký DbContext trong `Program.cs`.
+- Project build được.
 
-Lenh:
+Lệnh:
 
 ```powershell
 dotnet build
 ```
 
-## 2. Tao migration
+## 2. 🏗️ Tạo migration
 
-Chay:
+Chạy:
 
 ```powershell
 dotnet ef migrations add InitialCreate
 ```
 
-Sau lenh nay se co folder:
+Sau lệnh này sẽ có folder:
 
 ```text
 Migrations/
 ```
 
-Trong migration can kiem tra co:
+> [!NOTE]
+> Trong migration cần kiểm tra có:
+> - Bảng `Enterprises`.
+> - Bảng `Products`.
+> - Bảng `EnterpriseProducts`.
+> - Khóa chính `Id` tự tăng cho `Enterprises`, `Products`.
+> - Khóa chính ghép cho `EnterpriseProducts`.
+> - Khóa ngoại từ `EnterpriseProducts` đến `Enterprises`.
+> - Khóa ngoại từ `EnterpriseProducts` đến `Products`.
+> - Unique index cho tên doanh nghiệp, mã số thuế.
+> - Unique index cho tên sản phẩm, mã sản phẩm.
 
-- Bang `Enterprises`.
-- Bang `Products`.
-- Bang `EnterpriseProducts`.
-- Khoa chinh `Id` tu tang cho `Enterprises`, `Products`.
-- Khoa chinh ghep cho `EnterpriseProducts`.
-- Khoa ngoai tu `EnterpriseProducts` den `Enterprises`.
-- Khoa ngoai tu `EnterpriseProducts` den `Products`.
-- Unique index cho ten doanh nghiep, ma so thue.
-- Unique index cho ten san pham, ma san pham.
+## 3. 💾 Update database
 
-## 3. Update database
-
-Chay:
+Chạy:
 
 ```powershell
 dotnet ef database update
 ```
 
-Neu thanh cong, SQL Server se co database, vi du:
+Nếu thành công, SQL Server sẽ có database, ví dụ:
 
 ```text
 EnterpriseProduct1234De1Db
 ```
 
-## 4. Kiem tra database
+## 4. 🗃️ Kiểm tra database
 
-Mo SQL Server Management Studio hoac Azure Data Studio, kiem tra:
+Mở SQL Server Management Studio hoặc Azure Data Studio, kiểm tra:
 
 ```sql
 SELECT * FROM Enterprises;
@@ -67,27 +67,30 @@ SELECT * FROM Products;
 SELECT * FROM EnterpriseProducts;
 ```
 
-Du lieu mau tu `HasData` nen co:
+Dữ liệu mẫu từ `HasData` nên có:
 
-- 2 doanh nghiep.
-- 3 san pham.
-- 4 dong quan he doanh nghiep - san pham.
+- 2 doanh nghiệp.
+- 3 sản phẩm.
+- 4 dòng quan hệ doanh nghiệp - sản phẩm.
 
-## 5. Chay project
+## 5. ▶️ Chạy project
 
 ```powershell
 dotnet run
 ```
 
-Mo Swagger theo URL hien tren terminal, thuong la:
+Mở Swagger theo URL hiện trên terminal, thường là:
 
 ```text
 https://localhost:<port>/swagger
 ```
 
-Neu loi HTTPS certificate, co the dung URL HTTP neu project hien ca hai cong.
+> [!TIP]
+> Nếu lỗi HTTPS certificate, có thể dùng URL HTTP nếu project hiện cả hai cổng.
 
-## 6. Test API them doanh nghiep
+---
+
+## 6. 🧪 Test API thêm doanh nghiệp
 
 Request:
 
@@ -100,22 +103,22 @@ Body:
 
 ```json
 {
-  "name": "Cong ty Test",
+  "name": "Công ty Test",
   "taxCode": "MST999",
-  "address": "Da Nang"
+  "address": "Đà Nẵng"
 }
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 {
-  "message": "Them doanh nghiep thanh cong",
+  "message": "Thêm doanh nghiệp thành công",
   "data": {
     "id": 3,
-    "name": "Cong ty Test",
+    "name": "Công ty Test",
     "taxCode": "MST999",
-    "address": "Da Nang"
+    "address": "Đà Nẵng"
   }
 }
 ```
@@ -124,53 +127,54 @@ Test trim string:
 
 ```json
 {
-  "name": "  Cong ty Trim  ",
+  "name": "  Công ty Trim  ",
   "taxCode": "  MST998  ",
-  "address": "  Can Tho  "
+  "address": "  Cần Thơ  "
 }
 ```
 
-Ket qua tra ve/luu database nen khong con dau cach dau cuoi.
+> [!IMPORTANT]
+> Kết quả trả về/lưu database nên không còn dấu cách đầu cuối.
 
-## 7. Test loi trung ten doanh nghiep
+## 7. 🔴 Test lỗi trùng tên doanh nghiệp
 
-Gui lai body co `name` da ton tai:
+Gửi lại body có `name` đã tồn tại:
 
 ```json
 {
-  "name": "Cong ty ABC",
+  "name": "Công ty ABC",
   "taxCode": "MST100",
-  "address": "Ha Noi"
+  "address": "Hà Nội"
 }
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 {
-  "message": "Ten doanh nghiep da ton tai"
+  "message": "Tên doanh nghiệp đã tồn tại"
 }
 ```
 
-## 8. Test loi trung ma so thue
+## 8. 🔴 Test lỗi trùng mã số thuế
 
 ```json
 {
-  "name": "Cong ty Moi",
+  "name": "Công ty Mới",
   "taxCode": "MST001",
-  "address": "Ha Noi"
+  "address": "Hà Nội"
 }
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 {
-  "message": "Ma so thue da ton tai"
+  "message": "Mã số thuế đã tồn tại"
 }
 ```
 
-## 9. Test API sua doanh nghiep
+## 9. 🟢 Test API sửa doanh nghiệp
 
 Request:
 
@@ -183,18 +187,18 @@ Body:
 
 ```json
 {
-  "name": "Cong ty ABC Updated",
+  "name": "Công ty ABC Updated",
   "taxCode": "MST001",
-  "address": "Ha Noi Updated"
+  "address": "Hà Nội Updated"
 }
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
-- Sua thanh cong.
-- Khong bao trung ma so thue neu ma so thue do dang thuoc chinh doanh nghiep id 1.
+- Sửa thành công.
+- Không báo trùng mã số thuế nếu mã số thuế đó đang thuộc chính doanh nghiệp id 1.
 
-## 10. Test API xoa doanh nghiep
+## 10. 🗑️ Test API xóa doanh nghiệp
 
 Request:
 
@@ -202,23 +206,23 @@ Request:
 DELETE /api/enterprises/2
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 {
-  "message": "Xoa doanh nghiep thanh cong"
+  "message": "Xóa doanh nghiệp thành công"
 }
 ```
 
-Neu xoa id khong ton tai:
+Nếu xóa id không tồn tại:
 
 ```json
 {
-  "message": "Khong tim thay doanh nghiep"
+  "message": "Không tìm thấy doanh nghiệp"
 }
 ```
 
-## 11. Test phan trang
+## 11. 📄 Test phân trang
 
 Request:
 
@@ -226,7 +230,7 @@ Request:
 GET /api/enterprises?PageSize=10&PageIndex=1
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 {
@@ -237,7 +241,7 @@ Ket qua dung:
 }
 ```
 
-`items` se co du lieu tuy database hien tai.
+`items` sẽ có dữ liệu tùy database hiện tại.
 
 Test page 2:
 
@@ -245,31 +249,31 @@ Test page 2:
 GET /api/enterprises?PageSize=1&PageIndex=2
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 - `pageSize = 1`
 - `pageIndex = 2`
-- `items` co toi da 1 dong
+- `items` có tối đa 1 dòng
 
-## 12. Test tim kiem Keyword
+## 12. 🔍 Test tìm kiếm Keyword
 
-Theo ten:
+Theo tên:
 
 ```http
 GET /api/enterprises?PageSize=10&PageIndex=1&Keyword=ABC
 ```
 
-Theo ma so thue:
+Theo mã số thuế:
 
 ```http
 GET /api/enterprises?PageSize=10&PageIndex=1&Keyword=MST001
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
-- Chi tra cac doanh nghiep co ten hoac ma so thue chua keyword.
+- Chỉ trả các doanh nghiệp có tên hoặc mã số thuế chứa keyword.
 
-## 13. Test san pham nhap nhieu nhat
+## 13. 🏆 Test sản phẩm nhập nhiều nhất
 
 Request:
 
@@ -277,7 +281,7 @@ Request:
 GET /api/enterprises/1/top-products
 ```
 
-Voi seed data:
+Với seed data:
 
 ```text
 EnterpriseId = 1
@@ -286,31 +290,31 @@ Product 2 Quantity = 50
 Product 3 Quantity = 50
 ```
 
-Ket qua dung:
+Kết quả đúng:
 
 ```json
 [
   {
-    "name": "Ban phim co",
+    "name": "Bàn phím cơ",
     "code": "SP002"
   },
   {
-    "name": "Chuot khong day",
+    "name": "Chuột không dây",
     "code": "SP003"
   }
 ]
 ```
 
-Neu doanh nghiep ton tai nhung chua co san pham:
+Nếu doanh nghiệp tồn tại nhưng chưa có sản phẩm:
 
 ```json
 []
 ```
 
-Neu doanh nghiep khong ton tai:
+Nếu doanh nghiệp không tồn tại:
 
 ```json
 {
-  "message": "Khong tim thay doanh nghiep"
+  "message": "Không tìm thấy doanh nghiệp"
 }
 ```

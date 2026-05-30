@@ -1,36 +1,31 @@
-# Viet controllers va API
+# 🌐 Viết controllers và API
 
-## 1. Vai tro cua controller
+> [!IMPORTANT]
+> **Controller** là cửa ngõ giao tiếp của ứng dụng. Nó tiếp nhận Request từ người dùng, chuyển giao cho Service xử lý và trả về Response (dưới dạng JSON).
 
-Controller dung de:
+## 1. 🎯 Vai trò của controller
 
-- Nhan HTTP request.
-- Validate `ModelState`.
-- Goi service.
-- Tra `IActionResult`.
-- Chuyen `UserFriendlyException` thanh response de nguoi dung hieu.
+**✅ Controller dùng để:**
+- Nhận HTTP request (GET, POST, PUT, DELETE).
+- Tự động Validate `ModelState` (nhờ `[ApiController]`).
+- Gọi Service tương ứng.
+- Đóng gói Response thành `IActionResult`.
+- Bắt lỗi `UserFriendlyException` và trả về mã HTTP phù hợp (400 BadRequest).
 
-Controller khong nen chua:
+**❌ Controller KHÔNG NÊN chứa:**
+- Query database trực tiếp bằng EF Core.
+- Logic nghiệp vụ (check trùng lặp, tính toán số liệu).
 
-- Query EF Core truc tiep.
-- Logic check trung ten/ma so thue.
-- Logic tinh san pham nhap nhieu nhat.
+---
 
-## 2. Tao `EnterprisesController1234De1`
+## 2. 📝 Tạo `EnterprisesController1234De1`
 
-Duong dan:
+**Đường dẫn:** `Controllers/EnterprisesController1234De1.cs`
 
-```text
-Controllers/EnterprisesController1234De1.cs
-```
+> [!NOTE]
+> Nhờ Dependency Injection, ta chỉ cần truyền `IEnterpriseService1234De1` vào constructor, ASP.NET Core sẽ tự động tiêm class implement vào!
 
-File nay lien he voi:
-
-- `IEnterpriseService1234De1`
-- DTO trong `Dtos/Enterprises`
-- `UserFriendlyException`
-
-Code:
+**Code:**
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -57,11 +52,6 @@ public class EnterprisesController1234De1 : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _enterpriseService.CreateAsync(input);
             return Ok(new
             {
@@ -71,7 +61,7 @@ public class EnterprisesController1234De1 : ControllerBase
         }
         catch (UserFriendlyException ex)
         {
-            return BadRequest(new { ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 
@@ -80,11 +70,6 @@ public class EnterprisesController1234De1 : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _enterpriseService.UpdateAsync(id, input);
             return Ok(new
             {
@@ -94,7 +79,7 @@ public class EnterprisesController1234De1 : ControllerBase
         }
         catch (UserFriendlyException ex)
         {
-            return BadRequest(new { ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 
@@ -108,7 +93,7 @@ public class EnterprisesController1234De1 : ControllerBase
         }
         catch (UserFriendlyException ex)
         {
-            return BadRequest(new { ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 
@@ -117,17 +102,12 @@ public class EnterprisesController1234De1 : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _enterpriseService.GetListAsync(input);
             return Ok(result);
         }
         catch (UserFriendlyException ex)
         {
-            return BadRequest(new { ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 
@@ -141,80 +121,40 @@ public class EnterprisesController1234De1 : ControllerBase
         }
         catch (UserFriendlyException ex)
         {
-            return BadRequest(new { ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 }
 ```
 
-## 3. Giai thich route
+---
 
-```csharp
-[Route("api/enterprises")]
-```
+## 3. 🔍 Giải thích Route
 
-Tat ca API trong controller se bat dau bang `/api/enterprises`.
+| Attribute | HTTP Method | URL | Mục đích |
+| :--- | :--- | :--- | :--- |
+| `[Route("api/enterprises")]` | (Base Route) | `/api/enterprises` | Tiền tố áp dụng cho toàn bộ controller. |
+| `[HttpPost]` | POST | `/api/enterprises` | Thêm mới doanh nghiệp. |
+| `[HttpPut("{id:int}")]` | PUT | `/api/enterprises/1` | Sửa doanh nghiệp theo ID. |
+| `[HttpDelete("{id:int}")]` | DELETE | `/api/enterprises/1` | Xóa doanh nghiệp theo ID. |
+| `[HttpGet]` | GET | `/api/enterprises?PageSize=10` | Lấy danh sách (Có phân trang/tìm kiếm). |
+| `[HttpGet("{enterpriseId:int}/top-products")]` | GET | `/api/enterprises/1/top-products` | Route đặc biệt lấy sản phẩm nhập nhiều nhất. |
 
-```csharp
-[HttpPost]
-```
+---
 
-Dung cho them moi.
+## 4. ❓ Tại sao lại trả về `IActionResult`?
 
-```csharp
-[HttpPut("{id:int}")]
-```
+`IActionResult` là interface vô cùng mạnh mẽ, giúp API có thể trả về các HTTP Status Code chuẩn xác:
+- `Ok(...)` ➔ **HTTP 200** (Thành công).
+- `BadRequest(...)` ➔ **HTTP 400** (Lỗi validate hoặc lỗi do người dùng).
+- `NotFound(...)` ➔ **HTTP 404** (Không tìm thấy tài nguyên).
 
-Dung cho sua theo id.
+> [!WARNING]
+> Đề thi thường yêu cầu trả về chuẩn `IActionResult`. Tuyệt đối không trả về object/DTO một cách trực tiếp!
 
-```csharp
-[HttpDelete("{id:int}")]
-```
+---
 
-Dung cho xoa theo id.
+## 5. 🛠️ Về `ModelState.IsValid`
 
-```csharp
-[HttpGet]
-```
-
-Dung cho danh sach doanh nghiep.
-
-```csharp
-[HttpGet("{enterpriseId:int}/top-products")]
-```
-
-Dung cho API san pham nhap nhieu nhat cua mot doanh nghiep.
-
-## 4. Vi sao controller tra `IActionResult`
-
-`IActionResult` giup controller linh hoat tra:
-
-- `Ok(...)` khi thanh cong.
-- `BadRequest(...)` khi loi validate hoac loi nghiep vu.
-- `NotFound(...)` neu muon tach loi khong tim thay.
-- `StatusCode(500, ...)` neu can bat loi he thong.
-
-De thi yeu cau controller tra ve `IActionResult`, nen khong nen tra truc tiep DTO.
-
-## 5. Co can try/catch khong?
-
-Nen co try/catch don gian cho `UserFriendlyException`:
-
-```csharp
-catch (UserFriendlyException ex)
-{
-    return BadRequest(new { ex.Message });
-}
-```
-
-Khong nen catch rong roi tra thanh cong. Loi nghiep vu phai tra loi ro rang.
-
-## 6. Dang ky service trong `Program.cs`
-
-Neu quen dong nay, API se loi DI:
-
-```csharp
-builder.Services.AddScoped<IEnterpriseService1234De1, EnterpriseService1234De1>();
-```
-
-Dong nay noi ASP.NET Core rang khi controller can interface, hay tao instance cua service implement.
+> [!TIP]
+> Do controller có attribute `[ApiController]`, ASP.NET Core sẽ **tự động** kiểm tra `ModelState.IsValid` và ném ra lỗi `400 BadRequest` nếu DataAnnotations ở DTO bị sai (VD: Thiếu field bắt buộc, quá độ dài ký tự). Bạn không cần phải viết code check thủ công.

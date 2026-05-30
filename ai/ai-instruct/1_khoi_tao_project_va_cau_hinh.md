@@ -1,27 +1,30 @@
-# Khoi tao project va cau hinh
+# 🚀 Khởi tạo project và cấu hình
 
-## 1. Tao project ASP.NET Core Web API
+## 1. 🆕 Tạo project ASP.NET Core Web API
 
-Dung ten project theo de: `<HoVaTen><MSSV>`.
+Dùng tên project theo đề: `<HoVaTen><MSSV>`.
 
-Vi du:
+Ví dụ:
 
 ```powershell
 dotnet new webapi -n NguyenVanA1234
 cd NguyenVanA1234
 ```
 
-File/folder duoc sinh ra tu template:
+> [!NOTE]
+> **File/folder được sinh ra từ template:**
+> - `Program.cs`: cấu hình DI, middleware, Swagger, controller.
+> - `appsettings.json`: cấu hình connection string.
+> - `Properties/launchSettings.json`: cấu hình profile chạy local.
 
-- `Program.cs`: cau hinh DI, middleware, Swagger, controller.
-- `appsettings.json`: cau hinh connection string.
-- `Properties/launchSettings.json`: cau hinh profile chay local.
+> [!WARNING]
+> **KHÔNG NÊN** viết entity, service, DTO trực tiếp trong `Program.cs`.
 
-Khong nen viet entity, service, DTO truc tiep trong `Program.cs`.
+---
 
-## 2. Cai package EF Core
+## 2. 📦 Cài package EF Core
 
-Can SQL Server, migration va design-time tools:
+Cần SQL Server, migration và design-time tools:
 
 ```powershell
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer
@@ -29,55 +32,43 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 dotnet add package Microsoft.EntityFrameworkCore.Tools
 ```
 
-Neu may chua co `dotnet-ef`:
+> [!TIP]
+> Nếu máy chưa có `dotnet-ef`, hãy cài đặt:
+> ```powershell
+> dotnet tool install --global dotnet-ef
+> ```
+> Kiểm tra:
+> ```powershell
+> dotnet ef --version
+> ```
+
+---
+
+## 3. 📁 Tạo folder bắt buộc
+
+Tạo đúng cấu trúc bằng lệnh:
 
 ```powershell
-dotnet tool install --global dotnet-ef
+mkdir Constants Controllers DbContexts Dtos Entities Exceptions Services Utils
+mkdir Dtos\Enterprises Dtos\Products Dtos\EnterpriseProducts Dtos\Common
+mkdir Services\Implements Services\Interfaces
 ```
 
-Kiem tra:
+> [!NOTE]
+> Thư mục `Migrations` sẽ tự động được tạo sau khi bạn chạy lệnh migration.
 
-```powershell
-dotnet ef --version
-```
+---
 
-## 3. Tao folder bat buoc
+## 4. ⚙️ Cấu hình `appsettings.json`
 
-Tao dung cau truc:
+File này dùng để:
+- Lưu **connection string**.
+- Lưu cấu hình ứng dụng.
 
-```powershell
-mkdir Constants
-mkdir Controllers
-mkdir DbContexts
-mkdir Dtos
-mkdir Dtos\Enterprises
-mkdir Dtos\Products
-mkdir Dtos\EnterpriseProducts
-mkdir Dtos\Common
-mkdir Entities
-mkdir Exceptions
-mkdir Services
-mkdir Services\Implements
-mkdir Services\Interfaces
-mkdir Utils
-```
+> [!WARNING]
+> File này **không nên** chứa Code C#, Query SQL, Logic nghiệp vụ.
 
-`Migrations` se duoc tao sau khi chay lenh migration.
-
-## 4. Cau hinh `appsettings.json`
-
-File nay dung de:
-
-- Luu connection string.
-- Luu cau hinh ung dung.
-
-File nay khong nen chua:
-
-- Code C#.
-- Query SQL.
-- Logic nghiep vu.
-
-Vi du:
+**Ví dụ:**
 
 ```json
 {
@@ -94,35 +85,27 @@ Vi du:
 }
 ```
 
-Neu dung SQL Server Express:
+> [!TIP]
+> - Nếu dùng **SQL Server Express**:
+>   `"Server=.\\SQLEXPRESS;Database=...;Trusted_Connection=True;TrustServerCertificate=True"`
+> - Nếu dùng **LocalDB**:
+>   `"Server=(localdb)\\MSSQLLocalDB;Database=...;Trusted_Connection=True;TrustServerCertificate=True"`
 
-```json
-"DefaultConnection": "Server=.\\SQLEXPRESS;Database=EnterpriseProduct1234De1Db;Trusted_Connection=True;TrustServerCertificate=True"
-```
+---
 
-Neu dung LocalDB:
+## 5. 🛠️ Cấu hình `Program.cs`
 
-```json
-"DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=EnterpriseProduct1234De1Db;Trusted_Connection=True;TrustServerCertificate=True"
-```
+File này dùng để:
+- Đăng ký controller.
+- Đăng ký Swagger.
+- Đăng ký DbContext.
+- Đăng ký service DI.
+- Cấu hình middleware.
 
-## 5. Cau hinh `Program.cs`
+> [!WARNING]
+> File này **không nên** chứa logic thêm/sửa/xóa, LINQ truy vấn, hay code seed dữ liệu dài dòng.
 
-File nay dung de:
-
-- Dang ky controller.
-- Dang ky Swagger.
-- Dang ky DbContext.
-- Dang ky service DI.
-- Cau hinh middleware.
-
-File nay khong nen chua:
-
-- Logic them/sua/xoa doanh nghiep.
-- LINQ truy van nghiep vu.
-- Code seed du lieu dai va roi.
-
-Khung `Program.cs`:
+**Khung `Program.cs` chuẩn:**
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -136,9 +119,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Đăng ký DbContext
 builder.Services.AddDbContext<AppDbContext1234De1>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Đăng ký Dependency Injection
 builder.Services.AddScoped<IEnterpriseService1234De1, EnterpriseService1234De1>();
 
 var app = builder.Build();
@@ -155,17 +140,14 @@ app.MapControllers();
 app.Run();
 ```
 
-Lien he:
+---
 
-- `AppDbContext1234De1` nam trong `DbContexts`.
-- `IEnterpriseService1234De1` nam trong `Services/Interfaces`.
-- `EnterpriseService1234De1` nam trong `Services/Implements`.
-
-## 6. Lenh kiem tra sau khi cau hinh
+## 6. ✅ Lệnh kiểm tra sau khi cấu hình
 
 ```powershell
 dotnet restore
 dotnet build
 ```
 
-Neu build loi vi chua co class DbContext/service, hay viet cac file o cac buoc tiep theo roi build lai.
+> [!IMPORTANT]
+> Nếu build lỗi vì chưa có class DbContext/service, đừng lo lắng! Hãy viết các file ở các bước tiếp theo rồi build lại.

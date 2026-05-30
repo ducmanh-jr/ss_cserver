@@ -1,113 +1,115 @@
-# Kiem tra loi va van dap
+# 🩺 Kiểm tra lỗi và vấn đáp
 
-## 1. Checklist truoc khi nop
+## 1. ✅ Checklist trước khi nộp
 
-- Project la ASP.NET Core Web API.
-- Co Entity Framework Core SQL Server.
-- Co Code First Migration.
-- Co bang `Enterprises`.
-- Co bang `Products`.
-- Co bang `EnterpriseProducts`.
-- `EnterpriseProducts` co `Quantity`.
-- Khoa ngoai duoc tao dung trong migration.
-- Primary key cua doanh nghiep va san pham la `int` tu tang.
-- Them/sua doanh nghiep check trung ten.
-- Them/sua doanh nghiep check trung ma so thue.
-- Danh sach doanh nghiep co `PageSize`, `PageIndex`.
-- Danh sach doanh nghiep loc gan dung bang `Keyword`.
-- API top products nhan `enterpriseId`.
-- API top products tra `Name`, `Code`.
-- DTO co DataAnnotations.
-- String DTO duoc trim.
-- Controller tra `IActionResult`.
-- Service duoc dang ky DI.
-- Co `UserFriendlyException`.
-- Co du lieu mau de test.
+- Project là ASP.NET Core Web API.
+- Có Entity Framework Core SQL Server.
+- Có Code First Migration.
+- Có bảng `Enterprises`.
+- Có bảng `Products`.
+- Có bảng `EnterpriseProducts`.
+- `EnterpriseProducts` có `Quantity`.
+- Khóa ngoại được tạo đúng trong migration.
+- Primary key của doanh nghiệp và sản phẩm là `int` tự tăng.
+- Thêm/sửa doanh nghiệp check trùng tên.
+- Thêm/sửa doanh nghiệp check trùng mã số thuế.
+- Danh sách doanh nghiệp có `PageSize`, `PageIndex`.
+- Danh sách doanh nghiệp lọc gần đúng bằng `Keyword`.
+- API top products nhận `enterpriseId`.
+- API top products trả `Name`, `Code`.
+- DTO có DataAnnotations.
+- String DTO được trim.
+- Controller trả `IActionResult`.
+- Service được đăng ký DI.
+- Có `UserFriendlyException`.
+- Có dữ liệu mẫu để test.
 
-## 2. Loi connection string
+---
 
-Dau hieu:
+## 2. 🔌 Lỗi connection string
+
+**Dấu hiệu:**
 
 - `A network-related or instance-specific error occurred`.
 - `Cannot open database`.
 - `Login failed`.
 
-Cach sua:
+**Cách sửa:**
 
-- Kiem tra SQL Server dang chay.
-- Neu dung SQL Express, thu:
+- Kiểm tra SQL Server đang chạy.
+- Nếu dùng SQL Express, thử:
 
 ```json
 "Server=.\\SQLEXPRESS;Database=EnterpriseProduct1234De1Db;Trusted_Connection=True;TrustServerCertificate=True"
 ```
 
-- Neu dung LocalDB, thu:
+- Nếu dùng LocalDB, thử:
 
 ```json
 "Server=(localdb)\\MSSQLLocalDB;Database=EnterpriseProduct1234De1Db;Trusted_Connection=True;TrustServerCertificate=True"
 ```
 
-- Kiem tra ten connection string trong `Program.cs` phai la `"DefaultConnection"`.
+- Kiểm tra tên connection string trong `Program.cs` phải là `"DefaultConnection"`.
 
-## 3. Loi chua update database
+## 3. 💾 Lỗi chưa update database
 
-Dau hieu:
+**Dấu hiệu:**
 
-- API bao khong co bang.
-- SQL Server chua co database.
-- Migration da co nhung database rong.
+- API báo không có bảng.
+- SQL Server chưa có database.
+- Migration đã có nhưng database rỗng.
 
-Cach sua:
+**Cách sửa:**
 
 ```powershell
 dotnet ef database update
 ```
 
-Neu migration chua tao:
+Nếu migration chưa tạo:
 
 ```powershell
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-## 4. Loi trung ten/ma so thue
+## 4. 🔴 Lỗi trùng tên/mã số thuế
 
-Dau hieu:
+**Dấu hiệu:**
 
-- Them doanh nghiep trung nhung van thanh cong.
-- Sua doanh nghiep thanh ten da co van thanh cong.
+- Thêm doanh nghiệp trùng nhưng vẫn thành công.
+- Sửa doanh nghiệp thành tên đã có vẫn thành công.
 
-Cach sua:
+**Cách sửa:**
 
-- Trong service, them check:
+- Trong service, thêm check:
 
 ```csharp
 await _dbContext.Enterprises.AnyAsync(e => e.Name == name)
 await _dbContext.Enterprises.AnyAsync(e => e.TaxCode == taxCode)
 ```
 
-- Khi sua, nho bo qua id hien tai:
+- Khi sửa, nhớ bỏ qua id hiện tại:
 
 ```csharp
 e.Id != currentId.Value
 ```
 
-- Trong DbContext, them unique index:
+- Trong DbContext, thêm unique index:
 
 ```csharp
 entity.HasIndex(e => e.Name).IsUnique();
 entity.HasIndex(e => e.TaxCode).IsUnique();
 ```
 
-## 5. Loi PageIndex/PageSize sai
+## 5. 📄 Lỗi PageIndex/PageSize sai
 
-Dau hieu:
+**Dấu hiệu:**
 
-- Trang 1 khong co du lieu du database co.
-- `Skip` tinh sai.
-- `PageIndex = 0` khong bao loi.
+- Trang 1 không có dữ liệu dù database có.
+- `Skip` tính sai.
+- `PageIndex = 0` không báo lỗi.
 
-Cach sua:
+**Cách sửa:**
 
 - Validate DTO:
 
@@ -119,109 +121,114 @@ public int PageSize { get; set; } = 10;
 public int PageIndex { get; set; } = 1;
 ```
 
-- Service dung:
+- Service dùng:
 
 ```csharp
 Skip((input.PageIndex - 1) * input.PageSize)
 ```
 
-## 6. Loi khoa ngoai
+## 6. 🔗 Lỗi khóa ngoại
 
-Dau hieu:
+**Dấu hiệu:**
 
-- Them `EnterpriseProduct` loi vi `EnterpriseId` hoac `ProductId` khong ton tai.
-- Migration khong co foreign key.
+- Thêm `EnterpriseProduct` lỗi vì `EnterpriseId` hoặc `ProductId` không tồn tại.
+- Migration không có foreign key.
 
-Cach sua:
+**Cách sửa:**
 
-- Kiem tra entity trung gian co navigation:
+- Kiểm tra entity trung gian có navigation:
 
 ```csharp
 public Enterprise1234De1 Enterprise { get; set; } = null!;
 public Product1234De1 Product { get; set; } = null!;
 ```
 
-- Kiem tra DbContext co:
+- Kiểm tra DbContext có:
 
 ```csharp
 HasOne(ep => ep.Enterprise).WithMany(e => e.EnterpriseProducts)
 HasOne(ep => ep.Product).WithMany(p => p.EnterpriseProducts)
 ```
 
-## 7. Loi DI chua dang ky service
+## 7. 💉 Lỗi DI chưa đăng ký service
 
-Dau hieu:
+**Dấu hiệu:**
 
 ```text
 Unable to resolve service for type IEnterpriseService1234De1
 ```
 
-Cach sua trong `Program.cs`:
+**Cách sửa trong `Program.cs`:**
 
 ```csharp
 builder.Services.AddScoped<IEnterpriseService1234De1, EnterpriseService1234De1>();
 ```
 
-Va them using:
+Và thêm using:
 
 ```csharp
 using NguyenVanA1234.Services.Implements;
 using NguyenVanA1234.Services.Interfaces;
 ```
 
-## 8. Loi migration khong tao quan he n-n dung
+## 8. 🏗️ Lỗi migration không tạo quan hệ n-n đúng
 
-Dau hieu:
+**Dấu hiệu:**
 
-- EF tao bang la, khong co `EnterpriseProducts`.
-- Bang trung gian khong co `Quantity`.
-- Khoa ngoai thieu.
+- EF tạo bảng lạ, không có `EnterpriseProducts`.
+- Bảng trung gian không có `Quantity`.
+- Khóa ngoại thiếu.
 
-Cach sua:
+**Cách sửa:**
 
-- Khong dung skip navigation tu dong cho bai nay.
-- Tao entity trung gian rieng `EnterpriseProduct1234De1`.
-- Khai bao `DbSet<EnterpriseProduct1234De1>`.
-- Cau hinh composite key va foreign key trong `OnModelCreating`.
+- Không dùng skip navigation tự động cho bài này.
+- Tạo entity trung gian riêng `EnterpriseProduct1234De1`.
+- Khai báo `DbSet<EnterpriseProduct1234De1>`.
+- Cấu hình composite key và foreign key trong `OnModelCreating`.
 
-## 9. Van dap mau
+---
 
-### Vi sao dung DTO?
+## 9. 💬 Vấn đáp mẫu
 
-DTO giup tach du lieu API khoi entity database. DTO cho phep validate input, trim string, va chi nhan/tra cac field can thiet.
+> [!IMPORTANT]
+> Đây là các câu hỏi thường gặp khi bảo vệ bài thi.
 
-### Vi sao khong tra entity truc tiep?
+### Vì sao dùng DTO?
 
-Entity co the chua navigation gay lap vo han, lo cau truc database, hoac tra thua du lieu. Response DTO giup API gon va an toan hon.
+DTO giúp tách dữ liệu API khỏi entity database. DTO cho phép validate input, trim string, và chỉ nhận/trả các field cần thiết.
 
-### Vi sao dung service?
+### Vì sao không trả entity trực tiếp?
 
-Service la noi dat logic nghiep vu nhu check trung, phan trang, tim kiem va lay san pham nhap nhieu nhat. Nho vay controller gon va de kiem soat.
+Entity có thể chứa navigation gây lặp vô hạn, lộ cấu trúc database, hoặc trả thừa dữ liệu. Response DTO giúp API gọn và an toàn hơn.
 
-### Vi sao controller chi goi service?
+### Vì sao dùng service?
 
-Controller chi nen phu trach HTTP request/response. Neu controller chua logic database, code se roi, kho test va kho sua.
+Service là nơi đặt logic nghiệp vụ như check trùng, phân trang, tìm kiếm và lấy sản phẩm nhập nhiều nhất. Nhờ vậy controller gọn và dễ kiểm soát.
 
-### Vi sao dung `UserFriendlyException`?
+### Vì sao controller chỉ gọi service?
 
-`UserFriendlyException` dung cho loi nghiep vu ma nguoi dung co the hieu, vi du trung ten doanh nghiep hoac khong tim thay doanh nghiep. API se tra message ro rang thay vi loi he thong.
+Controller chỉ nên phụ trách HTTP request/response. Nếu controller chứa logic database, code sẽ rối, khó test và khó sửa.
 
-### Vi sao dung LINQ?
+### Vì sao dùng `UserFriendlyException`?
 
-LINQ giup truy van database bang C# ro rang, co the ket hop `Where`, `OrderBy`, `Skip`, `Take`, `Select`. EF Core se dich LINQ thanh SQL.
+`UserFriendlyException` dùng cho lỗi nghiệp vụ mà người dùng có thể hiểu, ví dụ trùng tên doanh nghiệp hoặc không tìm thấy doanh nghiệp. API sẽ trả message rõ ràng thay vì lỗi hệ thống.
 
-### Vi sao can bang trung gian trong quan he n-n?
+### Vì sao dùng LINQ?
 
-Vi mot doanh nghiep co nhieu san pham va mot san pham co nhieu doanh nghiep. Bang trung gian luu tung cap doanh nghiep - san pham.
+LINQ giúp truy vấn database bằng C# rõ ràng, có thể kết hợp `Where`, `OrderBy`, `Skip`, `Take`, `Select`. EF Core sẽ dịch LINQ thành SQL.
 
-### Vi sao `Quantity` nam o bang trung gian?
+### Vì sao cần bảng trung gian trong quan hệ n-n?
 
-`Quantity` la so luong cua mot san pham tai mot doanh nghiep cu the. Cung mot san pham co the co so luong khac nhau o cac doanh nghiep khac nhau, nen no khong thuoc rieng `Product`.
+Vì một doanh nghiệp có nhiều sản phẩm và một sản phẩm có nhiều doanh nghiệp. Bảng trung gian lưu từng cặp doanh nghiệp - sản phẩm.
 
-### Vi sao phai check trung ten/ma so thue?
+### Vì sao `Quantity` nằm ở bảng trung gian?
 
-De bai yeu cau ten doanh nghiep va ma so thue khong duoc trung. Check trong service giup tra loi than thien, unique index trong database giup bao ve du lieu o tang cuoi.
+`Quantity` là số lượng của một sản phẩm tại một doanh nghiệp cụ thể. Cùng một sản phẩm có thể có số lượng khác nhau ở các doanh nghiệp khác nhau, nên nó không thuộc riêng `Product`.
 
-### Vi sao phan trang can `PageSize` va `PageIndex`?
+### Vì sao phải check trùng tên/mã số thuế?
 
-`PageSize` quy dinh moi trang lay bao nhieu dong. `PageIndex` quy dinh lay trang nao. Neu khong phan trang, API co the tra qua nhieu du lieu va cham.
+Đề bài yêu cầu tên doanh nghiệp và mã số thuế không được trùng. Check trong service giúp trả lỗi thân thiện, unique index trong database giúp bảo vệ dữ liệu ở tầng cuối.
+
+### Vì sao phân trang cần `PageSize` và `PageIndex`?
+
+`PageSize` quy định mỗi trang lấy bao nhiêu dòng. `PageIndex` quy định lấy trang nào. Nếu không phân trang, API có thể trả quá nhiều dữ liệu và chậm.

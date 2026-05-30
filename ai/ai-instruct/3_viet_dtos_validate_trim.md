@@ -1,33 +1,32 @@
-# Viet DTO, validate va trim string
+# 📦 Viết DTO, validate và trim string
 
-## 1. Vi sao dung DTO
+> [!IMPORTANT]
+> DTO (Data Transfer Object) dùng để tách dữ liệu API khỏi entity database. Điều này giúp bảo mật dữ liệu và chuẩn hóa dữ liệu đầu vào.
 
-DTO dung de tach du lieu API khoi entity database.
+## 1. ❓ Vì sao dùng DTO
 
-Can DTO vi:
+Cần DTO vì:
+- **Bảo mật:** Không để client gửi thừa field như `Id` hoặc navigation.
+- **Validation:** Có thể validate input bằng DataAnnotations.
+- **Chuẩn hóa:** Có thể `Trim()` string ngay khi nhận request.
+- **Tối ưu:** Response chỉ trả về các field cần thiết.
 
-- Khong de client gui thua field nhu `Id` hoac navigation.
-- Co the validate input bang DataAnnotations.
-- Co the trim string ngay khi nhan request.
-- Response chi tra field can thiet.
+> [!WARNING]
+> DTO **không nên** chứa:
+> - `DbContext`.
+> - Query LINQ vào database.
+> - Logic nghiệp vụ (thêm/sửa/xóa).
 
-DTO khong nen chua:
+---
 
-- `DbContext`.
-- Query LINQ vao database.
-- Logic them/sua/xoa.
+## 2. 📝 Tạo DTO thêm doanh nghiệp
 
-## 2. Tao DTO them doanh nghiep
+**Đường dẫn:** `Dtos/Enterprises/CreateEnterpriseDto1234De1.cs`
 
-Duong dan:
+> [!TIP]
+> Sử dụng field `_name` kết hợp thuộc tính `Name` để tự động `Trim()` khoảng trắng ngay khi dữ liệu được set!
 
-```text
-Dtos/Enterprises/CreateEnterpriseDto1234De1.cs
-```
-
-File nay dung de nhan body khi them doanh nghiep.
-
-Code:
+**Code:**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -40,24 +39,24 @@ public class CreateEnterpriseDto1234De1
     private string _taxCode = string.Empty;
     private string _address = string.Empty;
 
-    [Required(ErrorMessage = "Ten doanh nghiep khong duoc de trong")]
-    [StringLength(255, ErrorMessage = "Ten doanh nghiep toi da 255 ky tu")]
+    [Required(ErrorMessage = "Tên doanh nghiệp không được để trống")]
+    [StringLength(255, ErrorMessage = "Tên doanh nghiệp tối đa 255 ký tự")]
     public string Name
     {
         get => _name;
         set => _name = value?.Trim() ?? string.Empty;
     }
 
-    [Required(ErrorMessage = "Ma so thue khong duoc de trong")]
-    [StringLength(50, ErrorMessage = "Ma so thue toi da 50 ky tu")]
+    [Required(ErrorMessage = "Mã số thuế không được để trống")]
+    [StringLength(50, ErrorMessage = "Mã số thuế tối đa 50 ký tự")]
     public string TaxCode
     {
         get => _taxCode;
         set => _taxCode = value?.Trim() ?? string.Empty;
     }
 
-    [Required(ErrorMessage = "Dia chi khong duoc de trong")]
-    [StringLength(500, ErrorMessage = "Dia chi toi da 500 ky tu")]
+    [Required(ErrorMessage = "Địa chỉ không được để trống")]
+    [StringLength(500, ErrorMessage = "Địa chỉ tối đa 500 ký tự")]
     public string Address
     {
         get => _address;
@@ -66,17 +65,15 @@ public class CreateEnterpriseDto1234De1
 }
 ```
 
-## 3. Tao DTO sua doanh nghiep
+---
 
-Duong dan:
+## 3. ✏️ Tạo DTO sửa doanh nghiệp
 
-```text
-Dtos/Enterprises/UpdateEnterpriseDto1234De1.cs
-```
+**Đường dẫn:** `Dtos/Enterprises/UpdateEnterpriseDto1234De1.cs`
 
-File nay dung de nhan body khi sua doanh nghiep.
+*(Giống hệt Create DTO nhưng việc tách riêng giúp bạn dễ dàng mở rộng logic sửa đổi sau này nếu cần)*
 
-Code:
+**Code:**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -89,24 +86,24 @@ public class UpdateEnterpriseDto1234De1
     private string _taxCode = string.Empty;
     private string _address = string.Empty;
 
-    [Required(ErrorMessage = "Ten doanh nghiep khong duoc de trong")]
-    [StringLength(255, ErrorMessage = "Ten doanh nghiep toi da 255 ky tu")]
+    [Required(ErrorMessage = "Tên doanh nghiệp không được để trống")]
+    [StringLength(255, ErrorMessage = "Tên doanh nghiệp tối đa 255 ký tự")]
     public string Name
     {
         get => _name;
         set => _name = value?.Trim() ?? string.Empty;
     }
 
-    [Required(ErrorMessage = "Ma so thue khong duoc de trong")]
-    [StringLength(50, ErrorMessage = "Ma so thue toi da 50 ky tu")]
+    [Required(ErrorMessage = "Mã số thuế không được để trống")]
+    [StringLength(50, ErrorMessage = "Mã số thuế tối đa 50 ký tự")]
     public string TaxCode
     {
         get => _taxCode;
         set => _taxCode = value?.Trim() ?? string.Empty;
     }
 
-    [Required(ErrorMessage = "Dia chi khong duoc de trong")]
-    [StringLength(500, ErrorMessage = "Dia chi toi da 500 ky tu")]
+    [Required(ErrorMessage = "Địa chỉ không được để trống")]
+    [StringLength(500, ErrorMessage = "Địa chỉ tối đa 500 ký tự")]
     public string Address
     {
         get => _address;
@@ -115,17 +112,16 @@ public class UpdateEnterpriseDto1234De1
 }
 ```
 
-## 4. Tao DTO xoa doanh nghiep
+---
 
-Duong dan:
+## 4. 🗑️ Tạo DTO xóa doanh nghiệp
 
-```text
-Dtos/Enterprises/DeleteEnterpriseDto1234De1.cs
-```
+**Đường dẫn:** `Dtos/Enterprises/DeleteEnterpriseDto1234De1.cs`
 
-De bai yeu cau DTO create/update/delete/filter validate bang built-in annotation. Neu API xoa dung route id, DTO nay van nen tao de dung khi can xoa bang body hoac de dap ung cau truc bai.
+> [!NOTE]
+> Đề bài yêu cầu DTO create/update/delete/filter validate bằng built-in annotation. Nếu API xóa dùng route id, DTO này vẫn nên tạo để đáp ứng cấu trúc bài thi.
 
-Code:
+**Code:**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -134,22 +130,20 @@ namespace NguyenVanA1234.Dtos.Enterprises;
 
 public class DeleteEnterpriseDto1234De1
 {
-    [Range(1, int.MaxValue, ErrorMessage = "Id doanh nghiep phai lon hon 0")]
+    [Range(1, int.MaxValue, ErrorMessage = "Id doanh nghiệp phải lớn hơn 0")]
     public int Id { get; set; }
 }
 ```
 
-## 5. Tao DTO filter doanh nghiep
+---
 
-Duong dan:
+## 5. 🔍 Tạo DTO filter doanh nghiệp
 
-```text
-Dtos/Enterprises/FilterEnterpriseDto1234De1.cs
-```
+**Đường dẫn:** `Dtos/Enterprises/FilterEnterpriseDto1234De1.cs`
 
-File nay dung de nhan query string `PageSize`, `PageIndex`, `Keyword`.
+Dùng để nhận query string `PageSize`, `PageIndex`, `Keyword`. Tự động set mặc định và trim keyword!
 
-Code:
+**Code:**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -160,13 +154,13 @@ public class FilterEnterpriseDto1234De1
 {
     private string? _keyword;
 
-    [Range(1, 100, ErrorMessage = "PageSize phai tu 1 den 100")]
+    [Range(1, 100, ErrorMessage = "PageSize phải từ 1 đến 100")]
     public int PageSize { get; set; } = 10;
 
-    [Range(1, int.MaxValue, ErrorMessage = "PageIndex phai lon hon 0")]
+    [Range(1, int.MaxValue, ErrorMessage = "PageIndex phải lớn hơn 0")]
     public int PageIndex { get; set; } = 1;
 
-    [StringLength(255, ErrorMessage = "Keyword toi da 255 ky tu")]
+    [StringLength(255, ErrorMessage = "Keyword tối đa 255 ký tự")]
     public string? Keyword
     {
         get => _keyword;
@@ -175,17 +169,12 @@ public class FilterEnterpriseDto1234De1
 }
 ```
 
-## 6. Tao DTO response doanh nghiep
+---
 
-Duong dan:
+## 6. 📤 Tạo DTO response (Data Output)
 
-```text
-Dtos/Enterprises/EnterpriseDto1234De1.cs
-```
-
-File nay dung de tra du lieu doanh nghiep ra API.
-
-Code:
+### 6.1 DTO Response Doanh nghiệp
+**Đường dẫn:** `Dtos/Enterprises/EnterpriseDto1234De1.cs`
 
 ```csharp
 namespace NguyenVanA1234.Dtos.Enterprises;
@@ -193,58 +182,14 @@ namespace NguyenVanA1234.Dtos.Enterprises;
 public class EnterpriseDto1234De1
 {
     public int Id { get; set; }
-
     public string Name { get; set; } = string.Empty;
-
     public string TaxCode { get; set; } = string.Empty;
-
     public string Address { get; set; } = string.Empty;
 }
 ```
 
-## 7. Tao DTO phan trang dung chung
-
-Duong dan:
-
-```text
-Dtos/Common/PagedResultDto1234De1.cs
-```
-
-File nay dung de tra ket qua co phan trang.
-
-Code:
-
-```csharp
-namespace NguyenVanA1234.Dtos.Common;
-
-public class PagedResultDto1234De1<T>
-{
-    public int TotalItems { get; set; }
-
-    public int PageSize { get; set; }
-
-    public int PageIndex { get; set; }
-
-    public List<T> Items { get; set; } = new();
-}
-```
-
-## 8. Tao DTO top product
-
-Duong dan:
-
-```text
-Dtos/Products/TopProductDto1234De1.cs
-```
-
-File nay dung de tra danh sach san pham nhap nhieu nhat cua mot doanh nghiep.
-
-Theo de, dau ra gom:
-
-- Ten san pham
-- Ma san pham
-
-Code:
+### 6.2 DTO Top Product
+**Đường dẫn:** `Dtos/Products/TopProductDto1234De1.cs`
 
 ```csharp
 namespace NguyenVanA1234.Dtos.Products;
@@ -252,32 +197,21 @@ namespace NguyenVanA1234.Dtos.Products;
 public class TopProductDto1234De1
 {
     public string Name { get; set; } = string.Empty;
-
     public string Code { get; set; } = string.Empty;
 }
 ```
 
-## 9. DTO bang trung gian neu can mo rong
-
-Duong dan:
-
-```text
-Dtos/EnterpriseProducts/EnterpriseProductDto1234De1.cs
-```
-
-File nay khong bat buoc cho API trong de, nhung folder nay bat buoc co. Co the tao DTO don gian de bieu dien quan he neu giao vien hoi.
-
-Code:
+### 6.3 DTO Phân trang dùng chung (Generic)
+**Đường dẫn:** `Dtos/Common/PagedResultDto1234De1.cs`
 
 ```csharp
-namespace NguyenVanA1234.Dtos.EnterpriseProducts;
+namespace NguyenVanA1234.Dtos.Common;
 
-public class EnterpriseProductDto1234De1
+public class PagedResultDto1234De1<T>
 {
-    public int EnterpriseId { get; set; }
-
-    public int ProductId { get; set; }
-
-    public int Quantity { get; set; }
+    public int TotalItems { get; set; }
+    public int PageSize { get; set; }
+    public int PageIndex { get; set; }
+    public List<T> Items { get; set; } = new();
 }
 ```
