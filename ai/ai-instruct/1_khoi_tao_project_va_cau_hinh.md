@@ -49,9 +49,14 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools
 Tạo đúng cấu trúc bằng lệnh:
 
 ```powershell
-mkdir Constants Controllers DbContexts Dtos Entities Exceptions Services Utils
-mkdir Dtos\Enterprises Dtos\Products Dtos\EnterpriseProducts Dtos\Common
-mkdir Services\Implements Services\Interfaces
+# Bước 1: Tạo các thư mục chính
+mkdir Constants, Controllers, DbContexts, Dtos, Entities, Exceptions, Services, Utils
+
+# Bước 2: Tạo các thư mục con trong Dtos
+mkdir Dtos\Enterprises, Dtos\Products, Dtos\EnterpriseProducts, Dtos\Common
+
+# Bước 3: Tạo các thư mục con trong Services
+mkdir Services\Implements, Services\Interfaces
 ```
 
 > [!NOTE]
