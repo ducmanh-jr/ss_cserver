@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bộ đề Máy chủ - Có đáp án</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;line-height:1.6;margin:0;background:#f4f6f8;color:#1f2937}
+    .container{max-width:1000px;margin:auto;background:white;padding:32px}
+    h1{text-align:center;color:#111827}
+    h2{background:#1f2937;color:white;padding:10px 14px;border-radius:8px;margin-top:32px}
+    h3{color:#0f172a;margin-top:24px}
+    .question{border-left:5px solid #2563eb;background:#eff6ff;padding:14px 18px;margin:14px 0;border-radius:6px}
+    .answer{border-left:5px solid #16a34a;background:#f0fdf4;padding:14px 18px;margin:14px 0;border-radius:6px}
+    code,pre{background:#111827;color:#e5e7eb;border-radius:6px}
+    code{padding:2px 5px}
+    pre{padding:14px;overflow:auto;white-space:pre-wrap}
+    .note{background:#fff7ed;border-left:5px solid #f97316;padding:12px 16px;border-radius:6px}
+    table{border-collapse:collapse;width:100%;margin:12px 0}
+    th,td{border:1px solid #d1d5db;padding:8px;text-align:left}
+    th{background:#e5e7eb}
+  </style>
+</head>
+<body>
+<div class="container">
+<h1>BỘ ĐỀ ÔN THI MÔN MÁY CHỦ<br/>Có đáp án đầy đủ</h1>
+
+<div class="note">
+  Cấu trúc mô phỏng theo đề Đa nền tảng: hỏi trực tiếp trên source code, yêu cầu chỉ ra luồng xử lý, vị trí sửa code, validate, API, database, lỗi và response.
+</div>
+
+<h2>BỘ 1</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Chỉ ra đoạn code xử lý API lấy danh sách phòng từ database và trả về cho client. Nếu muốn bổ sung trường <code>isAvailable</code> vào response JSON thì em sửa ở Controller hay Service? Giải thích.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>API lấy danh sách thường nằm ở Controller, ví dụ:</p>
+<pre><code>@GetMapping("/rooms")
+public ResponseEntity&lt;List&lt;RoomResponse&gt;&gt; getAllRooms() {
+    List&lt;RoomResponse&gt; rooms = roomService.getAllRooms();
+    return ResponseEntity.ok(rooms);
+}</code></pre>
+<p>Luồng xử lý:</p>
+<pre><code>Client gọi GET /rooms
+→ RoomController nhận request
+→ RoomService xử lý nghiệp vụ
+→ RoomRepository lấy dữ liệu từ database
+→ Service map Entity sang Response DTO
+→ Controller trả JSON về client</code></pre>
+<p>Nếu thêm trường <code>isAvailable</code>, nên sửa ở <b>DTO/Response và Service</b>, không nên xử lý trực tiếp ở Controller.</p>
+<pre><code>public class RoomResponse {
+    private Long id;
+    private String name;
+    private Double price;
+    private Boolean isAvailable;
+}</code></pre>
+<pre><code>RoomResponse response = new RoomResponse();
+response.setId(room.getId());
+response.setName(room.getName());
+response.setPrice(room.getPrice());
+response.setIsAvailable(room.getStatus().equals("AVAILABLE"));</code></pre>
+<p>Controller chỉ nhận request và trả response. Service chịu trách nhiệm xử lý logic dữ liệu.</p>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Mở hàm xử lý API thêm mới phòng. Dữ liệu từ request body được lấy như thế nào trước khi ghi xuống database? Thử đổi trường <code>pricePerNight</code> thành <code>price</code> và chỉ ra tất cả vị trí phải đồng bộ.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Dữ liệu được lấy từ request body thông qua <code>@RequestBody</code>.</p>
+<pre><code>@PostMapping("/rooms")
+public ResponseEntity&lt;RoomResponse&gt; createRoom(@RequestBody RoomRequest request) {
+    RoomResponse result = roomService.createRoom(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(result);
+}</code></pre>
+<p>DTO nhận dữ liệu:</p>
+<pre><code>public class RoomRequest {
+    private String name;
+    private Double pricePerNight;
+    private Integer capacity;
+}</code></pre>
+<p>Khi đổi <code>pricePerNight</code> thành <code>price</code>, cần sửa đồng bộ ở:</p>
+<table>
+<tr><th>Vị trí</th><th>Cần sửa</th></tr>
+<tr><td>Frontend</td><td>Body gửi lên API</td></tr>
+<tr><td>Request DTO</td><td><code>pricePerNight</code> → <code>price</code></td></tr>
+<tr><td>Service</td><td><code>request.getPricePerNight()</code> → <code>request.getPrice()</code></td></tr>
+<tr><td>Entity</td><td>Nếu Entity cũng dùng tên cũ thì đổi theo</td></tr>
+<tr><td>Database</td><td>Nếu tên cột là <code>price_per_night</code> thì cân nhắc đổi hoặc map bằng annotation</td></tr>
+</table>
+<p>Ví dụ sau khi sửa:</p>
+<pre><code>public class RoomRequest {
+    private String name;
+    private Double price;
+    private Integer capacity;
+}</code></pre>
+<pre><code>room.setPrice(request.getPrice());</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Sau khi xóa phòng thành công, API đang trả về mã trạng thái HTTP nào? Nếu muốn trả về thêm thông báo <code>{"message":"Delete success"}</code> thì sửa đoạn nào?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>API xóa thường dùng <code>DELETE</code> và trả về <code>204 No Content</code> hoặc <code>200 OK</code>.</p>
+<pre><code>@DeleteMapping("/rooms/{id}")
+public ResponseEntity&lt;Void&gt; deleteRoom(@PathVariable Long id) {
+    roomService.deleteRoom(id);
+    return ResponseEntity.noContent().build();
+}</code></pre>
+<p>Đoạn trên trả về <code>204 No Content</code>, không có body.</p>
+<p>Nếu muốn trả thông báo thì sửa Controller:</p>
+<pre><code>@DeleteMapping("/rooms/{id}")
+public ResponseEntity&lt;Map&lt;String, String&gt;&gt; deleteRoom(@PathVariable Long id) {
+    roomService.deleteRoom(id);
+    Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+    response.put("message", "Delete success");
+    return ResponseEntity.ok(response);
+}</code></pre>
+<p>Khi đó HTTP status là <code>200 OK</code>.</p>
+</div>
+
+<h2>BỘ 2</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Tính năng tìm kiếm phòng đang thực hiện bằng Query Parameters, Path Variables hay Request Body? Hãy mở code chứng minh.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nếu tìm kiếm qua URL dạng:</p>
+<pre><code>GET /rooms/search?keyword=deluxe&amp;minPrice=100000</code></pre>
+<p>thì đó là <b>Query Parameters</b>.</p>
+<pre><code>@GetMapping("/rooms/search")
+public ResponseEntity&lt;List&lt;RoomResponse&gt;&gt; searchRooms(
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) Double minPrice) {
+    return ResponseEntity.ok(roomService.searchRooms(keyword, minPrice));
+}</code></pre>
+<p>Dấu hiệu nhận biết:</p>
+<table>
+<tr><th>Loại</th><th>Ví dụ</th></tr>
+<tr><td>Query Parameters</td><td><code>/rooms?keyword=a</code></td></tr>
+<tr><td>Path Variables</td><td><code>/rooms/5</code></td></tr>
+<tr><td>Request Body</td><td>Dữ liệu JSON gửi trong body của POST/PUT</td></tr>
+</table>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Giải thích logic validate dữ liệu trước khi thêm mới. Bây giờ thêm điều kiện: Giá phòng phải lớn hơn 0. Em sẽ sửa ở đâu?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Validate nên đặt trong DTO bằng annotation hoặc trong Service.</p>
+<p>Cách tốt nhất với Spring Boot là dùng Bean Validation:</p>
+<pre><code>public class RoomRequest {
+    @NotBlank(message = "Tên phòng không được bỏ trống")
+    private String name;
+
+    @NotNull(message = "Giá phòng không được bỏ trống")
+    @Positive(message = "Giá phòng phải lớn hơn 0")
+    private Double price;
+}</code></pre>
+<p>Controller cần thêm <code>@Valid</code>:</p>
+<pre><code>@PostMapping("/rooms")
+public ResponseEntity&lt;RoomResponse&gt; createRoom(@Valid @RequestBody RoomRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(roomService.createRoom(request));
+}</code></pre>
+<p>Nếu không dùng annotation, có thể validate trong Service:</p>
+<pre><code>if (request.getPrice() == null || request.getPrice() &lt;= 0) {
+    throw new IllegalArgumentException("Giá phòng phải lớn hơn 0");
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Khi client gọi <code>GET /rooms/10</code>, luồng xử lý đi qua những lớp nào? Hãy mô tả Controller → Service → Repository → Database và chỉ ra tên class cụ thể.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>Client
+→ RoomController.getRoomById(10)
+→ RoomService.getRoomById(10)
+→ RoomRepository.findById(10)
+→ Database bảng rooms
+→ Trả RoomEntity
+→ Map sang RoomResponse
+→ Trả JSON cho client</code></pre>
+<p>Ví dụ code:</p>
+<pre><code>@GetMapping("/rooms/{id}")
+public ResponseEntity&lt;RoomResponse&gt; getRoomById(@PathVariable Long id) {
+    return ResponseEntity.ok(roomService.getRoomById(id));
+}</code></pre>
+<pre><code>public RoomResponse getRoomById(Long id) {
+    Room room = roomRepository.findById(id)
+        .orElseThrow(() -&gt; new RuntimeException("Room not found"));
+    return mapToResponse(room);
+}</code></pre>
+<pre><code>public interface RoomRepository extends JpaRepository&lt;Room, Long&gt; {
+}</code></pre>
+</div>
+
+<h2>BỘ 3</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Nếu database không có bản ghi nào thì API hiện đang trả <code>[]</code> hay <code>{"message":"No data"}</code>? Mở code chứng minh. Sau đó sửa để trả về thông báo "Không có dữ liệu".</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nếu code đang như sau:</p>
+<pre><code>@GetMapping("/rooms")
+public ResponseEntity&lt;List&lt;RoomResponse&gt;&gt; getAllRooms() {
+    return ResponseEntity.ok(roomService.getAllRooms());
+}</code></pre>
+<p>Khi không có dữ liệu, API thường trả về:</p>
+<pre><code>[]</code></pre>
+<p>Muốn trả thông báo thì sửa Controller:</p>
+<pre><code>@GetMapping("/rooms")
+public ResponseEntity&lt;?&gt; getAllRooms() {
+    List&lt;RoomResponse&gt; rooms = roomService.getAllRooms();
+
+    if (rooms.isEmpty()) {
+        Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+        response.put("message", "Không có dữ liệu");
+        return ResponseEntity.ok(response);
+    }
+
+    return ResponseEntity.ok(rooms);
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Nếu MySQL bị tắt trong lúc chạy ứng dụng: Exception nào xảy ra? Được bắt ở đâu? Client nhận được response gì? Hãy mô phỏng bằng cách đổi sai URL database.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Khi MySQL bị tắt hoặc URL database sai, lỗi thường gặp:</p>
+<pre><code>Communications link failure
+Connection refused
+Cannot connect to database
+JDBCConnectionException</code></pre>
+<p>Thông tin database nằm trong:</p>
+<pre><code>application.properties</code></pre>
+<pre><code>spring.datasource.url=jdbc:mysql://localhost:3306/my_database
+spring.datasource.username=root
+spring.datasource.password=123456</code></pre>
+<p>Nếu chưa có xử lý lỗi global, client có thể nhận <code>500 Internal Server Error</code>.</p>
+<p>Nên bắt lỗi bằng <code>@RestControllerAdvice</code>:</p>
+<pre><code>@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; handleException(Exception ex) {
+        Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+        response.put("message", "Lỗi máy chủ");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+}</code></pre>
+<p>Client nhận:</p>
+<pre><code>{
+  "message": "Lỗi máy chủ"
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Đề bài yêu cầu không cho cập nhật mã phòng. Em đang khóa dữ liệu ở DTO, Entity, Controller hay SQL Query? Hãy chỉ ra đoạn code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Cách đúng là không đưa mã phòng vào DTO cập nhật, hoặc bỏ qua trường mã phòng trong Service.</p>
+<p>Ví dụ DTO cập nhật không có <code>roomCode</code>:</p>
+<pre><code>public class UpdateRoomRequest {
+    private String name;
+    private Double price;
+    private Integer capacity;
+}</code></pre>
+<p>Service chỉ cập nhật các trường được phép:</p>
+<pre><code>public RoomResponse updateRoom(Long id, UpdateRoomRequest request) {
+    Room room = roomRepository.findById(id)
+        .orElseThrow(() -&gt; new RuntimeException("Room not found"));
+
+    room.setName(request.getName());
+    room.setPrice(request.getPrice());
+    room.setCapacity(request.getCapacity());
+
+    // Không có dòng: room.setRoomCode(...)
+
+    return mapToResponse(roomRepository.save(room));
+}</code></pre>
+<p>Như vậy mã phòng được khóa ở tầng DTO và Service.</p>
+</div>
+
+<h2>BỘ 4</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>API tạo phòng đang dùng POST hay PUT? Hãy mở code route chứng minh. Giải thích ý nghĩa HTTP Method đó.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>API tạo mới thường dùng <code>POST</code>:</p>
+<pre><code>@PostMapping("/rooms")
+public ResponseEntity&lt;RoomResponse&gt; createRoom(@RequestBody RoomRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(roomService.createRoom(request));
+}</code></pre>
+<p>Ý nghĩa:</p>
+<table>
+<tr><th>Method</th><th>Ý nghĩa</th></tr>
+<tr><td>POST</td><td>Tạo mới dữ liệu</td></tr>
+<tr><td>GET</td><td>Lấy dữ liệu</td></tr>
+<tr><td>PUT</td><td>Cập nhật toàn bộ dữ liệu</td></tr>
+<tr><td>PATCH</td><td>Cập nhật một phần dữ liệu</td></tr>
+<tr><td>DELETE</td><td>Xóa dữ liệu</td></tr>
+</table>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Đoạn code nào chịu trách nhiệm mapping dữ liệu RoomDTO ⇄ RoomEntity? Hãy giải thích.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Mapping thường nằm trong Service hoặc Mapper riêng.</p>
+<pre><code>private RoomResponse mapToResponse(Room room) {
+    RoomResponse response = new RoomResponse();
+    response.setId(room.getId());
+    response.setName(room.getName());
+    response.setPrice(room.getPrice());
+    response.setCapacity(room.getCapacity());
+    return response;
+}</code></pre>
+<p>Mapping từ Request DTO sang Entity:</p>
+<pre><code>private Room mapToEntity(RoomRequest request) {
+    Room room = new Room();
+    room.setName(request.getName());
+    room.setPrice(request.getPrice());
+    room.setCapacity(request.getCapacity());
+    return room;
+}</code></pre>
+<p>DTO dùng để giao tiếp với client. Entity dùng để ánh xạ với database. Không nên trả trực tiếp Entity ra client.</p>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Nếu client gửi thiếu trường <code>price</code>, server xử lý thế nào? Response thực tế là gì?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nếu DTO có validate:</p>
+<pre><code>public class RoomRequest {
+    @NotBlank(message = "Tên phòng không được bỏ trống")
+    private String name;
+
+    @NotNull(message = "Giá phòng không được bỏ trống")
+    @Positive(message = "Giá phòng phải lớn hơn 0")
+    private Double price;
+}</code></pre>
+<p>Controller:</p>
+<pre><code>@PostMapping("/rooms")
+public ResponseEntity&lt;RoomResponse&gt; createRoom(@Valid @RequestBody RoomRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(roomService.createRoom(request));
+}</code></pre>
+<p>Khi thiếu <code>price</code>, server trả <code>400 Bad Request</code>.</p>
+<pre><code>{
+  "price": "Giá phòng không được bỏ trống"
+}</code></pre>
+<p>Cần có handler:</p>
+<pre><code>@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity&lt;Map&lt;String, String&gt;&gt; handleValidation(MethodArgumentNotValidException ex) {
+    Map&lt;String, String&gt; errors = new HashMap&lt;&gt;();
+    ex.getBindingResult().getFieldErrors().forEach(error -&gt; {
+        errors.put(error.getField(), error.getDefaultMessage());
+    });
+    return ResponseEntity.badRequest().body(errors);
+}</code></pre>
+</div>
+
+<h2>BỘ 5</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Chức năng phân trang danh sách đang thực hiện ở Database, Service hay Controller? Hãy chỉ ra đoạn code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Với Spring Data JPA, phân trang được truyền từ Controller xuống Repository, nhưng việc lấy dữ liệu phân trang thực hiện ở database.</p>
+<pre><code>@GetMapping("/rooms")
+public ResponseEntity&lt;Page&lt;RoomResponse&gt;&gt; getRooms(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+    return ResponseEntity.ok(roomService.getRooms(page, size));
+}</code></pre>
+<pre><code>public Page&lt;RoomResponse&gt; getRooms(int page, int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    return roomRepository.findAll(pageable).map(this::mapToResponse);
+}</code></pre>
+<p>Repository:</p>
+<pre><code>public interface RoomRepository extends JpaRepository&lt;Room, Long&gt; {
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Giải thích ý nghĩa LIMIT và OFFSET trong API phân trang. Nếu muốn lấy 20 bản ghi mỗi trang thì sửa ở đâu?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p><code>LIMIT</code> là số bản ghi cần lấy. <code>OFFSET</code> là số bản ghi cần bỏ qua.</p>
+<pre><code>SELECT * FROM rooms LIMIT 10 OFFSET 20;</code></pre>
+<p>Nghĩa là bỏ qua 20 bản ghi đầu, lấy 10 bản ghi tiếp theo.</p>
+<p>Nếu muốn lấy 20 bản ghi mỗi trang, sửa default size:</p>
+<pre><code>@RequestParam(defaultValue = "20") int size</code></pre>
+<p>Hoặc khi gọi API:</p>
+<pre><code>GET /rooms?page=0&amp;size=20</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Nếu API trả dữ liệu quá chậm, em sẽ kiểm tra SQL Query, Index Database, Network, Logic Service theo thứ tự nào? Giải thích.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Thứ tự kiểm tra hợp lý:</p>
+<pre><code>1. Log thời gian request ở server
+2. SQL Query
+3. Index Database
+4. Logic Service
+5. Network / Frontend</code></pre>
+<p>Giải thích:</p>
+<ul>
+<li>Nếu query chậm, cần kiểm tra câu SQL và dùng <code>EXPLAIN</code>.</li>
+<li>Nếu lọc theo cột không có index, database sẽ quét toàn bảng.</li>
+<li>Nếu Service xử lý vòng lặp quá nhiều hoặc gọi API phụ nhiều lần thì cũng chậm.</li>
+<li>Nếu server xử lý nhanh nhưng client nhận chậm thì mới kiểm tra network/frontend.</li>
+</ul>
+<p>Ví dụ thêm index:</p>
+<pre><code>CREATE INDEX idx_rooms_price ON rooms(price);</code></pre>
+</div>
+
+<h2>BỘ 6</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>API đăng nhập đang xác thực tài khoản bằng cách nào: so sánh trực tiếp mật khẩu, hash password hay JWT? Mở code chứng minh.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Đăng nhập đúng chuẩn là kiểm tra mật khẩu đã hash, sau đó sinh JWT.</p>
+<pre><code>@PostMapping("/login")
+public ResponseEntity&lt;LoginResponse&gt; login(@RequestBody LoginRequest request) {
+    return ResponseEntity.ok(authService.login(request));
+}</code></pre>
+<pre><code>public LoginResponse login(LoginRequest request) {
+    User user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -&gt; new RuntimeException("Email không tồn tại"));
+
+    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        throw new RuntimeException("Sai mật khẩu");
+    }
+
+    String token = jwtUtil.generateToken(user.getEmail());
+    return new LoginResponse(token);
+}</code></pre>
+<p>Dòng chứng minh dùng hash password:</p>
+<pre><code>passwordEncoder.matches(request.getPassword(), user.getPassword())</code></pre>
+<p>Dòng chứng minh dùng JWT:</p>
+<pre><code>jwtUtil.generateToken(user.getEmail())</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Sau khi đăng nhập thành công, token được tạo ở đâu? Hãy chỉ ra JwtUtil hoặc jwt.encode hoặc jsonwebtoken.sign.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Với Spring Boot, token thường tạo trong class <code>JwtUtil</code>:</p>
+<pre><code>public String generateToken(String email) {
+    return Jwts.builder()
+        .setSubject(email)
+        .setIssuedAt(new Date())
+        .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+        .signWith(SignatureAlgorithm.HS256, secretKey)
+        .compact();
+}</code></pre>
+<p>Service gọi:</p>
+<pre><code>String token = jwtUtil.generateToken(user.getEmail());</code></pre>
+<p>Token được trả về client:</p>
+<pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Nếu token hết hạn, Server trả về 401 hay 403? Giải thích.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Token hết hạn nên trả về <code>401 Unauthorized</code>.</p>
+<ul>
+<li><code>401</code>: Chưa xác thực, token sai, token hết hạn.</li>
+<li><code>403</code>: Đã xác thực nhưng không có quyền truy cập.</li>
+</ul>
+<p>Ví dụ trong filter:</p>
+<pre><code>try {
+    String email = jwtUtil.extractEmail(token);
+} catch (ExpiredJwtException e) {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.getWriter().write("Token expired");
+    return;
+}</code></pre>
+</div>
+
+<h2>BỘ 7</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Chức năng upload ảnh đang nhận dữ liệu qua multipart/form-data hay JSON? Hãy mở code chứng minh.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nếu code dùng <code>MultipartFile</code> thì dữ liệu nhận qua <code>multipart/form-data</code>.</p>
+<pre><code>@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity&lt;String&gt; uploadFile(@RequestParam("file") MultipartFile file) {
+    String url = fileService.saveFile(file);
+    return ResponseEntity.ok(url);
+}</code></pre>
+<p>Dòng chứng minh:</p>
+<pre><code>@RequestParam("file") MultipartFile file</code></pre>
+<p>Client phải gửi dạng form-data, không phải JSON.</p>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>File ảnh được lưu local, database hay cloud ở đâu? Chỉ ra đoạn code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nếu lưu local:</p>
+<pre><code>public String saveFile(MultipartFile file) {
+    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+    Path path = Paths.get("uploads/" + fileName);
+    Files.copy(file.getInputStream(), path);
+    return "/uploads/" + fileName;
+}</code></pre>
+<p>Dòng chứng minh lưu local:</p>
+<pre><code>Paths.get("uploads/" + fileName)</code></pre>
+<p>Thông thường database chỉ lưu đường dẫn ảnh:</p>
+<pre><code>room.setImageUrl("/uploads/" + fileName);</code></pre>
+<p>Không nên lưu trực tiếp file ảnh lớn vào database.</p>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Nếu người dùng upload file 100MB thì hệ thống xử lý ra sao? Giới hạn dung lượng được cấu hình ở đâu?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Giới hạn upload thường nằm trong <code>application.properties</code>:</p>
+<pre><code>spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB</code></pre>
+<p>Nếu upload file 100MB, server trả lỗi do vượt quá dung lượng, thường là <code>413 Payload Too Large</code> hoặc <code>500</code> nếu chưa xử lý lỗi.</p>
+<p>Nên bắt lỗi:</p>
+<pre><code>@ExceptionHandler(MaxUploadSizeExceededException.class)
+public ResponseEntity&lt;Map&lt;String, String&gt;&gt; handleMaxSizeException() {
+    Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+    response.put("message", "File vượt quá dung lượng cho phép");
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
+}</code></pre>
+</div>
+
+<h2>BỘ 8</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Chỉ ra toàn bộ luồng xử lý của API <code>POST /rooms</code> từ lúc client gửi request tới khi dữ liệu được lưu thành công vào database.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>Client gửi POST /rooms với JSON body
+→ RoomController.createRoom() nhận request
+→ @RequestBody map JSON sang RoomRequest
+→ @Valid kiểm tra dữ liệu
+→ RoomService.createRoom() xử lý nghiệp vụ
+→ Service map RoomRequest sang Room Entity
+→ RoomRepository.save(room)
+→ Database INSERT vào bảng rooms
+→ Repository trả Entity đã lưu
+→ Service map Entity sang RoomResponse
+→ Controller trả HTTP 201 Created</code></pre>
+<p>Code mẫu:</p>
+<pre><code>@PostMapping("/rooms")
+public ResponseEntity&lt;RoomResponse&gt; createRoom(@Valid @RequestBody RoomRequest request) {
+    RoomResponse response = roomService.createRoom(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+}</code></pre>
+<pre><code>public RoomResponse createRoom(RoomRequest request) {
+    Room room = new Room();
+    room.setName(request.getName());
+    room.setPrice(request.getPrice());
+    room.setCapacity(request.getCapacity());
+
+    Room savedRoom = roomRepository.save(room);
+    return mapToResponse(savedRoom);
+}</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Giả sử thêm trường mới <code>description</code> vào bảng Room. Em cần sửa những file nào? Liệt kê đầy đủ.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Cần sửa các vị trí sau:</p>
+<table>
+<tr><th>File / phần</th><th>Nội dung cần sửa</th></tr>
+<tr><td>Database migration / SQL</td><td>Thêm cột <code>description</code></td></tr>
+<tr><td>Room Entity</td><td>Thêm thuộc tính <code>description</code></td></tr>
+<tr><td>RoomRequest DTO</td><td>Nhận <code>description</code> từ client</td></tr>
+<tr><td>RoomResponse DTO</td><td>Trả <code>description</code> về client</td></tr>
+<tr><td>RoomService</td><td>Map request → entity và entity → response</td></tr>
+<tr><td>Frontend form</td><td>Thêm input mô tả</td></tr>
+<tr><td>Frontend API body</td><td>Gửi thêm field <code>description</code></td></tr>
+<tr><td>Frontend UI list/detail</td><td>Hiển thị mô tả nếu cần</td></tr>
+</table>
+<p>SQL:</p>
+<pre><code>ALTER TABLE rooms ADD COLUMN description TEXT;</code></pre>
+<p>Entity:</p>
+<pre><code>@Column(columnDefinition = "TEXT")
+private String description;</code></pre>
+<p>Service:</p>
+<pre><code>room.setDescription(request.getDescription());
+response.setDescription(room.getDescription());</code></pre>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Nếu đổi endpoint <code>/api/rooms</code> thành <code>/api/v2/rooms</code> thì frontend nào sẽ bị ảnh hưởng? Những vị trí nào cần sửa để hệ thống hoạt động bình thường?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Các phần frontend gọi API cũ sẽ bị ảnh hưởng.</p>
+<p>Cần sửa:</p>
+<table>
+<tr><th>Vị trí</th><th>Nội dung</th></tr>
+<tr><td>Backend Controller</td><td>Đổi route thành <code>/api/v2/rooms</code></td></tr>
+<tr><td>Frontend service/api file</td><td>Đổi URL gọi API</td></tr>
+<tr><td>Axios baseURL</td><td>Nếu route được cấu hình chung</td></tr>
+<tr><td>Test API</td><td>Postman/Swagger/cURL</td></tr>
+<tr><td>Documentation</td><td>Cập nhật endpoint mới</td></tr>
+</table>
+<p>Backend:</p>
+<pre><code>@RequestMapping("/api/v2/rooms")
+@RestController
+public class RoomController {
+}</code></pre>
+<p>Frontend:</p>
+<pre><code>axios.get("/api/v2/rooms");</code></pre>
+<p>Nếu có file cấu hình chung:</p>
+<pre><code>const API_ROOM = "/api/v2/rooms";</code></pre>
+<p>Nên sửa ở file API service chung để tránh phải sửa nhiều màn hình.</p>
+</div>
+
+<h2>BỘ 9 - NODEJS / EXPRESS</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Chỉ ra route xử lý lấy danh sách sản phẩm. Dữ liệu được lấy từ database bằng hàm nào?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>router.get('/products', productController.getAllProducts);</code></pre>
+<pre><code>exports.getAllProducts = async (req, res) =&gt; {
+  const products = await productService.getAllProducts();
+  res.status(200).json(products);
+};</code></pre>
+<pre><code>exports.getAllProducts = async () =&gt; {
+  return await Product.findAll();
+};</code></pre>
+<p>Dữ liệu được lấy từ database bằng <code>Product.findAll()</code>.</p>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Nếu thêm sản phẩm mà thiếu tên, server đang bắt lỗi ở đâu? Hãy sửa để trả về thông báo "Tên sản phẩm không được bỏ trống".</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>exports.createProduct = async (req, res) =&gt; {
+  const { name, price } = req.body;
+
+  if (!name || name.trim() === '') {
+    return res.status(400).json({
+      message: 'Tên sản phẩm không được bỏ trống'
+    });
+  }
+
+  const product = await Product.create({ name, price });
+  res.status(201).json(product);
+};</code></pre>
+<p>Lỗi được bắt ở Controller hoặc Middleware validate.</p>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>API xóa sản phẩm đang nhận ID bằng params hay body? Chỉ ra đoạn code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>router.delete('/products/:id', productController.deleteProduct);</code></pre>
+<pre><code>exports.deleteProduct = async (req, res) =&gt; {
+  const id = req.params.id;
+  await Product.destroy({ where: { id } });
+  res.status(200).json({ message: 'Delete success' });
+};</code></pre>
+<p>Dòng chứng minh:</p>
+<pre><code>const id = req.params.id;</code></pre>
+<p>Vậy ID được nhận bằng <b>Path Params</b>.</p>
+</div>
+
+<h2>BỘ 10 - FASTAPI</h2>
+
+<div class="question">
+<h3>Câu 1</h3>
+<p>Trong FastAPI, API thêm mới dữ liệu nhận body bằng model nào? Chỉ ra đoạn code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<pre><code>class RoomCreate(BaseModel):
+    name: str
+    price: float
+    capacity: int</code></pre>
+<pre><code>@app.post("/rooms")
+def create_room(room: RoomCreate, db: Session = Depends(get_db)):
+    new_room = Room(
+        name=room.name,
+        price=room.price,
+        capacity=room.capacity
+    )
+    db.add(new_room)
+    db.commit()
+    db.refresh(new_room)
+    return new_room</code></pre>
+<p>API nhận body thông qua Pydantic model <code>RoomCreate</code>.</p>
+</div>
+
+<div class="question">
+<h3>Câu 2</h3>
+<p>Nếu muốn validate giá phòng phải lớn hơn 0 trong FastAPI thì sửa ở đâu?</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Sửa trong Pydantic model:</p>
+<pre><code>from pydantic import BaseModel, Field
+
+class RoomCreate(BaseModel):
+    name: str
+    price: float = Field(gt=0, description="Giá phòng phải lớn hơn 0")
+    capacity: int</code></pre>
+<p>Nếu client gửi <code>price &lt;= 0</code>, FastAPI tự trả lỗi <code>422 Unprocessable Entity</code>.</p>
+</div>
+
+<div class="question">
+<h3>Câu 3</h3>
+<p>Khi database không tìm thấy phòng theo ID, API nên trả lỗi gì? Viết code.</p>
+</div>
+<div class="answer">
+<h3>Đáp án</h3>
+<p>Nên trả <code>404 Not Found</code>.</p>
+<pre><code>from fastapi import HTTPException
+
+@app.get("/rooms/{room_id}")
+def get_room(room_id: int, db: Session = Depends(get_db)):
+    room = db.query(Room).filter(Room.id == room_id).first()
+
+    if room is None:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    return room</code></pre>
+<p>Response:</p>
+<pre><code>{
+  "detail": "Room not found"
+}</code></pre>
+</div>
+
+<h2>TÓM TẮT MẪU TRẢ LỜI KHI THI</h2>
+<div class="answer">
+<p>Khi gặp câu hỏi kiểu này, nên trả lời theo công thức:</p>
+<pre><code>1. Chỉ ra file / class / hàm nằm ở đâu
+2. Đọc đúng dòng code chính
+3. Giải thích luồng dữ liệu
+4. Nếu đề yêu cầu sửa, nêu rõ sửa file nào
+5. Nếu có lỗi, nêu HTTP status và response trả về</code></pre>
+<p>Ví dụ mẫu:</p>
+<pre><code>API này nằm trong RoomController, hàm getAllRooms().
+Controller nhận request GET /rooms rồi gọi roomService.getAllRooms().
+Service gọi roomRepository.findAll() để lấy dữ liệu từ database.
+Sau đó Service map Entity sang DTO và Controller trả về ResponseEntity.ok().
+Nếu muốn thêm trường mới thì sửa Entity, DTO, Service mapping và frontend body nếu có.</code></pre>
+</div>
+
+</div>
+</body>
+</html>

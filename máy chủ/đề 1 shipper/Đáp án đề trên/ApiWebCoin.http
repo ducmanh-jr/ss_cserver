@@ -1,0 +1,6 @@
+@ApiWebCoin_HostAddress = http://localhost:5190
+
+GET {{ApiWebCoin_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

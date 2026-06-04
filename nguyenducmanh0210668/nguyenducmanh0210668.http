@@ -1,6 +1,0 @@
-@nguyenducmanh0210668_HostAddress = http://localhost:5010
-
-GET {{nguyenducmanh0210668_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
